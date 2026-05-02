@@ -29,15 +29,6 @@ type Result = {
   rawBody?: string;
   rawRequest?: string;
 };
-type Diagnostics = {
-  env?: "real" | "demo";
-  availableCashBefore?: number;
-  creditBefore?: number;
-  pendingBefore?: number;
-  basketTotal?: number;
-  portfolioPositionCountBefore?: number;
-  portfolioPositionCountAfter?: number;
-};
 
 const QUICK_AMOUNTS = [200, 500, 1000, 2500];
 
@@ -106,20 +97,15 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
           })),
         }),
       });
-      const json = (await r.json()) as {
-        results?: Result[];
-        error?: string;
-        diagnostics?: Diagnostics;
-      };
+      const json = (await r.json()) as { results?: Result[]; error?: string };
       if (json.error && !json.results) {
-        // Hard pre-flight failure (e.g. cash check). Show at top level.
         setTopLevelError(json.error);
         setResults(
           allocations.map((h) => ({
             ticker: h.ticker,
             ok: false,
             status: "failed" as LegStatus,
-            error: "Not attempted — basket aborted before placement",
+            error: "Not attempted",
           })),
         );
       } else {
@@ -264,10 +250,7 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
           <div className="p-8 flex flex-col items-center gap-3">
             <Loader2 className="w-6 h-6 text-accent animate-spin" />
             <div className="text-[13px] text-fg-muted">
-              Submitting orders, then waiting for fills…
-            </div>
-            <div className="text-[11.5px] text-fg-subtle text-center max-w-xs">
-              eToro returns each order ID immediately; positions take a couple of seconds to settle.
+              Submitting orders…
             </div>
           </div>
         )}
@@ -287,7 +270,7 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
             </div>
             <p className="text-[11.5px] text-fg-subtle leading-relaxed">
               Funds must be available in your eToro account for these orders to fill. If your balance is insufficient,
-              eToro will reject the affected legs at execution time.
+              eToro will reject the trades.
             </p>
             <button
               onClick={onClose}
