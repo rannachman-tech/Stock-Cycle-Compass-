@@ -206,9 +206,6 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
             <div className="text-[13px] text-fg-muted">
               Submitting orders to eToro…
             </div>
-            <div className="text-[11.5px] text-fg-subtle text-center max-w-xs">
-              eToro throttles trades to ~1 per second, so this takes a moment per leg.
-            </div>
           </div>
         )}
 

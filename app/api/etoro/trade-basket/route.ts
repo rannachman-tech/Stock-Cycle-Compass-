@@ -1,24 +1,23 @@
 // Place a sequence of market-buy orders for a basket on eToro.
 // Body: { apiKey, userKey, env: "real"|"demo", basket: [{ ticker, instrumentId, amount }] }
 // Endpoint: /trading/execution/{demo/}market-open-orders/by-amount
-// Body uses PascalCase: { InstrumentID, IsBuy, Leverage, Amount }
 //
-// IMPORTANT: eToro's trade endpoint enforces:
-//   1. A per-account rate limit on trade execution (~1 req/s in practice).
-//      Sending 4 trades in a tight loop within ~50 ms causes the 2nd-4th
-//      to be silently 200'd with no OrderID. Fix: 1100 ms gap between calls.
-//   2. The x-request-id header is used server-side for IDEMPOTENCY. Sending
-//      the same ID twice → eToro returns the cached response of the first
-//      request (no new order is placed). We must guarantee a fresh UUID per
-//      call. crypto.randomUUID() is correct, but we also use Date.now() +
-//      a counter as belt-and-braces against any runtime hoisting/caching.
+// IMPORTANT lessons learned the hard way:
+//   1. x-request-id MUST be a valid UUID — eToro validates the hex shape and
+//      returns 422 if any non-hex chars appear in the hex slots. Use
+//      crypto.randomUUID() exactly, no salting / no hand-rolled tail bytes.
+//   2. For cash-equity buys (ETFs / stocks without leverage), pass
+//      IsNoStopLoss: true and IsNoTakeProfit: true. eToro's default is to
+//      require a stop-loss; without one of those flags the order 422s.
+//   3. Don't send Leverage on non-leveraged buys — let eToro default it.
+//      Sending Leverage: 1 with no leverage product can fail validation.
+//
+// Body shape for a clean cash-equity buy:
+//   { InstrumentID, IsBuy: true, Amount, IsNoStopLoss: true, IsNoTakeProfit: true }
 
 export const runtime = "edge";
 
 const API_BASE = "https://public-api.etoro.com/api/v1";
-// Conservative gap between sequential trades. Empirically ~1 req/s is the
-// throttling threshold on the trading endpoints. 1100 ms gives us margin.
-const TRADE_GAP_MS = 1100;
 // eToro per-instrument minimum order size — empirical, not documented.
 const MIN_AMOUNT = 10;
 
@@ -38,21 +37,6 @@ interface ResultRow {
   // Kept compact — first 400 chars of the body.
   rawStatus?: number;
   rawBody?: string;
-}
-
-function freshRequestId(seq: number): string {
-  // crypto.randomUUID() is the primary source. We salt it with seq + time
-  // as belt-and-braces in case a runtime ever hoists/caches it.
-  const u = crypto.randomUUID();
-  const t = Date.now().toString(36);
-  // Replace last 8 chars of UUID with seq + time to guarantee uniqueness
-  // across the loop without breaking the UUID v4 shape.
-  const tail = `${seq.toString(36).padStart(2, "0")}${t}`.slice(-8);
-  return `${u.slice(0, -8)}${tail}`;
-}
-
-async function sleep(ms: number) {
-  return new Promise<void>((res) => setTimeout(res, ms));
 }
 
 export async function POST(req: Request) {
@@ -93,26 +77,25 @@ export async function POST(req: Request) {
       continue;
     }
 
-    // Throttle gap — required to avoid eToro's silent rate limit on trades.
-    // Skip the gap before the first request.
-    if (i > 0) await sleep(TRADE_GAP_MS);
-
-    const reqId = freshRequestId(i);
     try {
       const r = await fetch(`${API_BASE}${path}`, {
         method: "POST",
         headers: {
           "x-api-key": apiKey,
           "x-user-key": userKey,
-          "x-request-id": reqId,
+          // Pure UUID — eToro validates the hex shape. Do NOT salt this.
+          "x-request-id": crypto.randomUUID(),
           "content-type": "application/json",
           accept: "application/json",
         },
         body: JSON.stringify({
           InstrumentID: row.instrumentId,
           IsBuy: true,
-          Leverage: 1,
-          Amount: row.amount,
+          // No Leverage field — let eToro default to non-leveraged for cash equity.
+          Amount: Math.round(row.amount * 100) / 100,
+          // Required for cash-equity buys without an explicit stop / take.
+          IsNoStopLoss: true,
+          IsNoTakeProfit: true,
         }),
       });
       // Read body as text first so we can keep a diagnostic copy AND parse JSON.
@@ -153,7 +136,7 @@ export async function POST(req: Request) {
         result.error =
           (json?.Message ?? json?.message ?? json?.ErrorMessage ?? json?.Error) ||
           (r.ok
-            ? "eToro returned 200 but no order/position ID — likely throttled or duplicate request-id"
+            ? "eToro returned 200 but no order/position ID — open the row to see the body"
             : `HTTP ${r.status}`);
       }
       results.push(result);
