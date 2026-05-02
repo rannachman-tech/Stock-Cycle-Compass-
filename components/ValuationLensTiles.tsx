@@ -95,11 +95,46 @@ function Tile({ ind, pro }: { ind: Indicator; pro: boolean }) {
       </div>
 
       {pro && (
-        <div className="mt-2 grid grid-cols-2 gap-x-2 text-[10px] text-fg-subtle font-mono">
-          <div>med {ind.longRunMedian != null ? fmtNum(ind.longRunMedian, ind.unit) : "—"}</div>
-          <div className="text-right">avg {ind.longRunMean != null ? fmtNum(ind.longRunMean, ind.unit) : "—"}</div>
+        <div className="mt-2 pt-2 border-t border-border/70 space-y-1">
+          <ProMetric label="median" value={ind.longRunMedian} unit={ind.unit} />
+          <ProMetric label="mean" value={ind.longRunMean} unit={ind.unit} />
+          {ind.longRunMedian != null && Math.abs(ind.longRunMedian) > 0.0001 && (
+            <ProDelta current={ind.value} median={ind.longRunMedian} higherIsExpensive={ind.higherIsExpensive} />
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+function ProMetric({ label, value, unit }: { label: string; value?: number; unit: string }) {
+  return (
+    <div className="flex items-baseline justify-between text-[10.5px] font-mono tabular-nums">
+      <span className="text-fg-subtle uppercase tracking-[0.14em]">{label}</span>
+      <span className="text-fg-muted">
+        {value != null ? fmtNum(value, unit) : "—"}
+      </span>
+    </div>
+  );
+}
+
+function ProDelta({ current, median, higherIsExpensive }: { current: number; median: number; higherIsExpensive: boolean }) {
+  const rawPct = (current - median) / Math.abs(median);
+  // For "lower is expensive" indicators (ERP/breadth/VIX), invert the sign so a
+  // positive number always means "more expensive than median".
+  const signed = higherIsExpensive ? rawPct : -rawPct;
+  const label = signed >= 0 ? "+" : "";
+  const colour =
+    signed > 0.20 ? "rgb(var(--zone-warning))"
+    : signed > 0.05 ? "rgb(var(--zone-watch))"
+    : signed < -0.20 ? "rgb(var(--zone-clear))"
+    : "rgb(var(--fg-muted))";
+  return (
+    <div className="flex items-baseline justify-between text-[10.5px] font-mono tabular-nums">
+      <span className="text-fg-subtle uppercase tracking-[0.14em]">vs med</span>
+      <span style={{ color: colour }} className="font-medium">
+        {label}{(signed * 100).toFixed(0)}%
+      </span>
     </div>
   );
 }

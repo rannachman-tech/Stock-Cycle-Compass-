@@ -231,22 +231,35 @@ export default function CycleWheel({ percentile, degrees, zone, tag }: Props) {
           <circle cx="0" cy="0" r="2" fill="rgb(var(--accent-fg))" />
         </g>
 
-        {/* Center text — the percentile */}
+        {/* Center text — the percentile.
+            Big number + accent "%" mark + small "ile" superscript so it
+            reads unambiguously as "percentile" not "percent". */}
         <text x={CX} y={CY - 5}
               textAnchor="middle"
               dominantBaseline="central"
               fontFamily="var(--font-geist-sans), system-ui, sans-serif"
-              fontSize="44"
+              fontSize="46"
               fontWeight="500"
-              letterSpacing="-1.2"
+              letterSpacing="-1.4"
               fill="rgb(var(--fg))">
           {pctRounded}
           <tspan
-            fontSize="14"
-            dy="-18"
+            fontSize="22"
+            dx="2"
+            dy="-2"
+            fontFamily="var(--font-geist-sans), system-ui, sans-serif"
+            fontWeight="500"
+            fill="rgb(var(--accent))">
+            %
+          </tspan>
+          <tspan
+            fontSize="11"
+            dx="0.5"
+            dy="-12"
             fontFamily="var(--font-geist-mono), ui-monospace, monospace"
-            fill="rgb(var(--fg-subtle))">
-            th
+            fill="rgb(var(--fg-subtle))"
+            letterSpacing="0.4">
+            ile
           </tspan>
         </text>
         <text x={CX} y={CY + 22}

@@ -36,6 +36,7 @@
       "percentile": 54,
       "wheelDegrees": 134,
       "zone": "watch",
+      "impliedFairValue": 480,
       "insights": {
         "headline": "Mid-cycle Europe — cheaper than the US, but not by accident.",
         "body": [
@@ -64,6 +65,7 @@
       "percentile": 36,
       "wheelDegrees": 96,
       "zone": "watch",
+      "impliedFairValue": 9100,
       "insights": {
         "headline": "FTSE is what cheap looks like — and why cheap can stay cheap.",
         "body": [
@@ -92,6 +94,7 @@
       "percentile": 72,
       "wheelDegrees": 187,
       "zone": "warning",
+      "impliedFairValue": 720,
       "insights": {
         "headline": "MSCI World leans US-rich. The cycle leans late.",
         "body": [

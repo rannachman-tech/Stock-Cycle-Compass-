@@ -12,6 +12,7 @@ import ConnectEtoroCta from "./ConnectEtoroCta";
 import ValuationLensTiles from "./ValuationLensTiles";
 import CapeSpiral from "./CapeSpiral";
 import TradeBasketModal from "./TradeBasketModal";
+import ProDetails from "./ProDetails";
 
 interface Props {
   data: CompassData;
@@ -48,12 +49,7 @@ export default function RegionView({ data, pro, onConnectClick }: Props) {
             />
           </div>
           <PositionLadder zone={snap.zone} />
-          {pro && snap.impliedFairValue && (
-            <div className="mt-3 text-[12px] text-fg-muted text-center font-mono">
-              Implied fair value (CAPE-mean reversion):{" "}
-              <span className="text-fg font-medium">S&P {snap.impliedFairValue.toLocaleString()}</span>
-            </div>
-          )}
+          {pro && <ProDetails snap={snap} region={region} />}
         </div>
 
         <div className="flex flex-col gap-4">
