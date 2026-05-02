@@ -31,8 +31,17 @@ export const runtime = "edge";
 const API_BASE = "https://public-api.etoro.com/api/v1";
 const TRADE_GAP_MS = 300;
 const MIN_AMOUNT = 10;
-// How long to wait after each order before polling for position fill.
-const POSITION_POLL_DELAYS_MS = [1500, 2500];
+// Polling delays before each retry of /orders/{orderId} — match the working
+// Python reference (oajm79/trading) which uses 2s, 4s, 8s. eToro takes
+// several seconds to populate the order-detail endpoint after placement.
+const POSITION_POLL_DELAYS_MS = [2000, 4000, 6000];
+
+// Three terminal states a leg of the basket can be in.
+//   filled  → position exists in eToro AND isOpen=true (or appears in portfolio)
+//   pending → position exists but isOpen=false (queued, e.g. market closed)
+//   queued  → order placed but no position record found yet
+//   failed  → order rejected outright (4xx/5xx or no orderId)
+type LegStatus = "filled" | "pending" | "queued" | "failed";
 
 interface TradeRow {
   ticker: string;
@@ -43,8 +52,10 @@ interface TradeRow {
 interface ResultRow {
   ticker: string;
   ok: boolean;
+  status: LegStatus;
   orderId?: number;
   positionId?: number;
+  isOpen?: boolean;
   rate?: number;
   units?: number;
   error?: string;
@@ -95,14 +106,20 @@ async function placeOrder(
   return { status: r.status, bodyText, json };
 }
 
-// Optionally resolve positionID by polling the order detail endpoint.
-// Best-effort — if it fails, we still return the orderID we already have.
+// Resolve position by polling the order-detail endpoint.
+// Returns isOpen so the caller can distinguish "Filled" from "Pending Open".
+// Best-effort — if it fails, we still have the orderID.
 async function resolvePosition(
   apiKey: string,
   userKey: string,
   env: "real" | "demo",
   orderId: number,
-): Promise<{ positionId?: number; rate?: number; units?: number }> {
+): Promise<{
+  positionId?: number;
+  rate?: number;
+  units?: number;
+  isOpen?: boolean;
+}> {
   const path = `/trading/info/${env === "demo" ? "demo/" : "real/"}orders/${orderId}`;
   for (const delay of POSITION_POLL_DELAYS_MS) {
     await sleep(delay);
@@ -111,15 +128,25 @@ async function resolvePosition(
         method: "GET",
         headers: commonHeaders(apiKey, userKey),
       });
+      // 404 = order not yet processed by detail endpoint, retry.
+      if (r.status === 404) continue;
       if (!r.ok) continue;
       const j = await r.json().catch(() => ({} as any));
       const positions = j?.positions ?? j?.Positions ?? [];
       if (Array.isArray(positions) && positions.length > 0) {
         const p = positions[0];
+        // isOpen is the field that tells us whether eToro has actually
+        // filled the order at the venue. When markets are closed the
+        // position record exists but isOpen is false → "Pending Open".
+        const isOpen =
+          typeof p?.isOpen === "boolean" ? p.isOpen :
+          typeof p?.IsOpen === "boolean" ? p.IsOpen :
+          undefined;
         return {
           positionId: p?.positionID ?? p?.PositionID ?? undefined,
-          rate: p?.rate ?? p?.Rate ?? undefined,
+          rate: p?.rate ?? p?.Rate ?? p?.openRate ?? p?.OpenRate ?? undefined,
           units: p?.units ?? p?.Units ?? undefined,
+          isOpen,
         };
       }
     } catch {
@@ -127,6 +154,45 @@ async function resolvePosition(
     }
   }
   return {};
+}
+
+// Cross-check: fetch the user's portfolio and see whether each positionID
+// actually exists there. The portfolio is the ground truth — if eToro's
+// order endpoint claims a position but the portfolio doesn't have it, the
+// order didn't really land.
+async function fetchPortfolioPositionIds(
+  apiKey: string,
+  userKey: string,
+  env: "real" | "demo",
+): Promise<Set<number>> {
+  const path = `/trading/info/${env === "demo" ? "demo/" : ""}portfolio`;
+  try {
+    const r = await fetch(`${API_BASE}${path}`, {
+      method: "GET",
+      headers: commonHeaders(apiKey, userKey),
+    });
+    if (!r.ok) return new Set();
+    const j = (await r.json().catch(() => ({}))) as any;
+    const cp = j?.clientPortfolio ?? j?.ClientPortfolio ?? j ?? {};
+    const positions: any[] = cp?.positions ?? cp?.Positions ?? [];
+    const ids = new Set<number>();
+    for (const p of positions) {
+      const id = p?.positionID ?? p?.PositionID;
+      if (typeof id === "number") ids.add(id);
+    }
+    // Mirrors hold their own positions array.
+    const mirrors: any[] = cp?.mirrors ?? cp?.Mirrors ?? [];
+    for (const m of mirrors) {
+      const ms: any[] = m?.positions ?? m?.Positions ?? [];
+      for (const p of ms) {
+        const id = p?.positionID ?? p?.PositionID;
+        if (typeof id === "number") ids.add(id);
+      }
+    }
+    return ids;
+  } catch {
+    return new Set();
+  }
 }
 
 // Extract orderID from the eToro response.
@@ -191,6 +257,7 @@ export async function POST(req: Request) {
       results.push({
         ticker: row.ticker,
         ok: false,
+        status: "failed",
         error: `Below eToro minimum ($${row.amount.toFixed(2)} < $${MIN_AMOUNT})`,
       });
       continue;
@@ -209,19 +276,22 @@ export async function POST(req: Request) {
 
       const orderId = extractOrderId(json);
       const errorMessage = bodyHasError(json);
-      const ok =
+      const accepted =
         status >= 200 && status < 300 &&
         typeof orderId === "number" &&
         errorMessage == null;
 
       const result: ResultRow = {
         ticker: row.ticker,
-        ok,
+        // ok = "eToro accepted the order request"; the row's true outcome
+        // (filled vs pending vs queued) is set in `status` once we resolve.
+        ok: accepted,
+        status: accepted ? "queued" : "failed",
         rawStatus: status,
         rawBody: bodyText.slice(0, 500),
       };
       if (orderId != null) result.orderId = orderId;
-      if (!ok) {
+      if (!accepted) {
         result.error =
           errorMessage ??
           json?.Message ?? json?.message ?? json?.ErrorMessage ?? json?.Error ??
@@ -234,26 +304,54 @@ export async function POST(req: Request) {
       results.push({
         ticker: row.ticker,
         ok: false,
+        status: "failed",
         error: e?.message ?? "Network error",
       });
     }
   }
 
-  // Best-effort: resolve positionID for every successful order.
-  // This is async and slow (~2s per order minimum), but it's what
-  // turns the result UI from "Order #123" → "Filled #456 at $X / Y units".
-  // We do it AFTER all orders are placed so the user gets the basket
-  // committed first.
-  const successes = results.filter((r) => r.ok && r.orderId != null);
-  if (successes.length > 0) {
+  // Resolve position state for every accepted order.
+  // We do this AFTER all orders are placed so the user gets the basket
+  // committed first, then we fill in fill-or-pending detail in parallel.
+  const accepted = results.filter((r) => r.ok && r.orderId != null);
+  if (accepted.length > 0) {
     await Promise.all(
-      successes.map(async (r) => {
+      accepted.map(async (r) => {
         const pos = await resolvePosition(apiKey, userKey, env, r.orderId!);
         if (pos.positionId != null) r.positionId = pos.positionId;
         if (pos.rate != null) r.rate = pos.rate;
         if (pos.units != null) r.units = pos.units;
+        if (pos.isOpen != null) r.isOpen = pos.isOpen;
+        // Tentative status from the order-detail endpoint.
+        if (pos.positionId != null) {
+          r.status = pos.isOpen === false ? "pending" : pos.isOpen === true ? "filled" : "pending";
+        } else {
+          r.status = "queued";
+        }
       }),
     );
+
+    // Ground-truth cross-check: fetch the live portfolio. A positionID
+    // that's actually visible there is genuinely filled or pending; one
+    // that isn't is most likely a queued order that hasn't materialised
+    // (or was silently dropped by eToro). If isOpen wasn't returned at
+    // all, the portfolio presence promotes "queued" → "pending".
+    const portfolioIds = await fetchPortfolioPositionIds(apiKey, userKey, env);
+    if (portfolioIds.size > 0) {
+      for (const r of accepted) {
+        if (r.positionId != null && portfolioIds.has(r.positionId)) {
+          // Position is in the portfolio. If isOpen wasn't reported, treat
+          // its presence in the portfolio as confirmation of at least pending.
+          if (r.isOpen === true) r.status = "filled";
+          else if (r.isOpen === false) r.status = "pending";
+          else r.status = "pending";
+        } else if (r.positionId != null) {
+          // We were given a positionID but the portfolio doesn't show it.
+          // Keep our existing tentative status (likely pending).
+          // No-op — the order-detail status stays.
+        }
+      }
+    }
   }
 
   return Response.json({ results });

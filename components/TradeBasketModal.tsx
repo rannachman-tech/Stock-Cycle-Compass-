@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, Check, ChevronDown, Loader2, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, Clock, Hourglass, Loader2, X } from "lucide-react";
 import type { Basket } from "@/lib/types";
 import { allocate } from "@/lib/baskets";
 import { getSession } from "@/lib/etoro-session";
@@ -14,11 +14,14 @@ interface Props {
 }
 
 type Step = "review" | "confirm" | "executing" | "result";
+type LegStatus = "filled" | "pending" | "queued" | "failed";
 type Result = {
   ticker: string;
   ok: boolean;
+  status: LegStatus;
   orderId?: number;
   positionId?: number;
+  isOpen?: boolean;
   rate?: number;
   units?: number;
   error?: string;
@@ -216,7 +219,7 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
 
         {step === "result" && (
           <div className="p-5 space-y-4">
-            <h3 className="text-[14px] font-medium text-fg">Execution result</h3>
+            <ResultSummary results={results} />
             <div className="rounded-md border border-border divide-y divide-border">
               {results.map((r) => (
                 <ResultRow key={r.ticker} r={r} />
@@ -275,22 +278,83 @@ function AllocationTable({
   );
 }
 
+function ResultSummary({ results }: { results: Result[] }) {
+  const counts = results.reduce(
+    (acc, r) => {
+      acc[r.status] = (acc[r.status] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<LegStatus, number>,
+  );
+  const total = results.length;
+  const filled = counts.filled ?? 0;
+  const pending = counts.pending ?? 0;
+  const queued = counts.queued ?? 0;
+  const failed = counts.failed ?? 0;
+
+  let headline: string;
+  if (filled === total) {
+    headline = `All ${total} orders filled`;
+  } else if (filled + pending + queued === total && filled === 0) {
+    headline = `${pending + queued} of ${total} orders queued for next market open`;
+  } else if (failed === total) {
+    headline = `All ${total} orders failed — see rows for the eToro response`;
+  } else {
+    const parts: string[] = [];
+    if (filled) parts.push(`${filled} filled`);
+    if (pending) parts.push(`${pending} pending market open`);
+    if (queued) parts.push(`${queued} queued`);
+    if (failed) parts.push(`${failed} failed`);
+    headline = parts.join(" · ");
+  }
+
+  return (
+    <div>
+      <h3 className="text-[14px] font-medium text-fg">Execution result</h3>
+      <p className="mt-1 text-[12px] text-fg-muted leading-relaxed">{headline}</p>
+      {(pending > 0 || queued > 0) && (
+        <p className="mt-1 text-[11.5px] text-fg-subtle leading-relaxed">
+          Pending positions exist in your eToro account but won't show as Open until the venue starts trading. Queued
+          orders haven't reported a position yet — refresh your eToro portfolio in a few minutes to confirm.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ResultRow({ r }: { r: Result }) {
   const [open, setOpen] = useState(false);
-  // Prefer positionID (the executed fill) over orderID (just the queued order).
-  const statusLabel = (() => {
-    if (!r.ok) return r.error ?? "Rejected";
-    if (typeof r.positionId === "number") {
-      const detail =
-        r.rate != null && r.units != null
-          ? ` · ${r.units.toFixed(4)} @ ${r.rate.toFixed(4)}`
-          : "";
-      return `Filled #${r.positionId}${detail}`;
-    }
-    if (typeof r.orderId === "number") return `Order #${r.orderId} placed`;
-    return "Accepted";
-  })();
   const hasDiagnostic = r.rawBody != null || r.rawStatus != null;
+
+  // Pick icon + colour from status
+  const Icon =
+    r.status === "filled" ? Check :
+    r.status === "pending" ? Hourglass :
+    r.status === "queued" ? Clock :
+    X;
+  const iconColour =
+    r.status === "filled" ? "text-zone-clear" :
+    r.status === "pending" ? "text-zone-watch" :
+    r.status === "queued" ? "text-fg-muted" :
+    "text-zone-storm";
+
+  // Build the status detail line
+  const detail = (() => {
+    if (r.status === "failed") return r.error ?? "Rejected";
+    const id = r.positionId ?? r.orderId;
+    const idLabel =
+      r.positionId != null ? `#${r.positionId}` :
+      r.orderId != null ? `Order #${r.orderId}` :
+      "";
+    const fillDetail =
+      r.rate != null && r.units != null
+        ? ` · ${r.units.toFixed(4)} @ ${r.rate.toFixed(4)}`
+        : "";
+    if (r.status === "filled") return `Filled ${idLabel}${fillDetail}`;
+    if (r.status === "pending") return `Pending Open ${idLabel} — waits for market`;
+    if (r.status === "queued") return `Queued ${idLabel} — eToro hasn't reported a position yet`;
+    return idLabel;
+  })();
   return (
     <div>
       <button
@@ -301,13 +365,9 @@ function ResultRow({ r }: { r: Result }) {
         aria-expanded={open}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          {r.ok ? (
-            <Check className="w-3.5 h-3.5 text-zone-clear shrink-0" />
-          ) : (
-            <X className="w-3.5 h-3.5 text-zone-storm shrink-0" />
-          )}
+          <Icon className={`w-3.5 h-3.5 ${iconColour} shrink-0`} />
           <div className="font-mono text-[11.5px] text-fg w-14 shrink-0">{r.ticker}</div>
-          <div className="text-[12.5px] text-fg-muted truncate">{statusLabel}</div>
+          <div className="text-[12.5px] text-fg-muted truncate">{detail}</div>
         </div>
         {hasDiagnostic && (
           <ChevronDown
