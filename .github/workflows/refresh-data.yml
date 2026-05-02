@@ -1,0 +1,31 @@
+name: Refresh stock-cycle data
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "17 6 * * *"  # 06:17 UTC daily
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npm run build:data
+      - name: Commit if changed
+        run: |
+          if [[ -n "$(git status --porcelain data/)" ]]; then
+            git config user.name "scc-bot"
+            git config user.email "scc-bot@users.noreply.github.com"
+            git add data/
+            git commit -m "data: refresh $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          else
+            echo "No data changes."
+          fi
