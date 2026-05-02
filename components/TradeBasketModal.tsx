@@ -27,6 +27,16 @@ type Result = {
   error?: string;
   rawStatus?: number;
   rawBody?: string;
+  rawRequest?: string;
+};
+type Diagnostics = {
+  env?: "real" | "demo";
+  availableCashBefore?: number;
+  creditBefore?: number;
+  pendingBefore?: number;
+  basketTotal?: number;
+  portfolioPositionCountBefore?: number;
+  portfolioPositionCountAfter?: number;
 };
 
 const QUICK_AMOUNTS = [200, 500, 1000, 2500];
@@ -36,6 +46,8 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
   const [amount, setAmount] = useState<number>(1000);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [results, setResults] = useState<Result[]>([]);
+  const [diagnostics, setDiagnostics] = useState<Diagnostics | null>(null);
+  const [topLevelError, setTopLevelError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -44,6 +56,8 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
     if (!open) return;
     setStep("review");
     setResults([]);
+    setDiagnostics(null);
+    setTopLevelError(null);
     setExpanded(null);
   }, [open, basket?.zone, basket?.region]);
 
@@ -85,10 +99,44 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
           })),
         }),
       });
-      const json = (await r.json()) as { results?: Result[]; error?: string };
-      setResults(json.results ?? allocations.map((h) => ({ ticker: h.ticker, ok: false, error: json.error || `HTTP ${r.status}` })));
+      const json = (await r.json()) as {
+        results?: Result[];
+        error?: string;
+        diagnostics?: Diagnostics;
+      };
+      if (json.error && !json.results) {
+        // Hard pre-flight failure (e.g. cash check). Show at top level.
+        setTopLevelError(json.error);
+        setDiagnostics(json.diagnostics ?? null);
+        setResults(
+          allocations.map((h) => ({
+            ticker: h.ticker,
+            ok: false,
+            status: "failed" as LegStatus,
+            error: "Not attempted — basket aborted before placement",
+          })),
+        );
+      } else {
+        setResults(
+          json.results ??
+            allocations.map((h) => ({
+              ticker: h.ticker,
+              ok: false,
+              status: "failed" as LegStatus,
+              error: json.error || `HTTP ${r.status}`,
+            })),
+        );
+        setDiagnostics(json.diagnostics ?? null);
+      }
     } catch (e: any) {
-      setResults(allocations.map((h) => ({ ticker: h.ticker, ok: false, error: e?.message || "Network error" })));
+      setResults(
+        allocations.map((h) => ({
+          ticker: h.ticker,
+          ok: false,
+          status: "failed" as LegStatus,
+          error: e?.message || "Network error",
+        })),
+      );
     }
     setStep("result");
   }
@@ -220,11 +268,17 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
         {step === "result" && (
           <div className="p-5 space-y-4">
             <ResultSummary results={results} />
+            {topLevelError && (
+              <div className="rounded-md border border-zone-storm/40 bg-zone-storm/10 px-3 py-2 text-[12.5px] text-zone-storm">
+                {topLevelError}
+              </div>
+            )}
             <div className="rounded-md border border-border divide-y divide-border">
               {results.map((r) => (
                 <ResultRow key={r.ticker} r={r} />
               ))}
             </div>
+            {diagnostics && <DiagnosticsBar d={diagnostics} />}
             <button
               onClick={onClose}
               className="w-full rounded-md bg-accent text-accent-fg px-4 py-2.5 text-[13px] font-medium"
@@ -322,9 +376,45 @@ function ResultSummary({ results }: { results: Result[] }) {
   );
 }
 
+function DiagnosticsBar({ d }: { d: Diagnostics }) {
+  const items: Array<[string, string]> = [];
+  if (d.env) items.push(["env", d.env]);
+  if (typeof d.creditBefore === "number")
+    items.push(["credit", `$${d.creditBefore.toFixed(2)}`]);
+  if (typeof d.pendingBefore === "number")
+    items.push(["pending", `$${d.pendingBefore.toFixed(2)}`]);
+  if (typeof d.availableCashBefore === "number")
+    items.push(["available", `$${d.availableCashBefore.toFixed(2)}`]);
+  if (typeof d.basketTotal === "number")
+    items.push(["basket", `$${d.basketTotal.toFixed(2)}`]);
+  if (
+    typeof d.portfolioPositionCountBefore === "number" &&
+    typeof d.portfolioPositionCountAfter === "number"
+  ) {
+    items.push([
+      "portfolio Δ",
+      `${d.portfolioPositionCountBefore} → ${d.portfolioPositionCountAfter}`,
+    ]);
+  }
+  if (items.length === 0) return null;
+  return (
+    <div className="rounded-md border border-border bg-bg-soft px-3 py-2 text-[10.5px] font-mono text-fg-subtle">
+      <div className="uppercase tracking-[0.16em] mb-1.5">eToro round-trip</div>
+      <div className="flex flex-wrap gap-x-3 gap-y-1">
+        {items.map(([k, v]) => (
+          <span key={k}>
+            <span className="text-fg-subtle">{k}</span>{" "}
+            <span className="text-fg-muted tabular-nums">{v}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ResultRow({ r }: { r: Result }) {
   const [open, setOpen] = useState(false);
-  const hasDiagnostic = r.rawBody != null || r.rawStatus != null;
+  const hasDiagnostic = r.rawBody != null || r.rawStatus != null || r.rawRequest != null;
 
   // Pick icon + colour from status
   const Icon =
@@ -378,14 +468,29 @@ function ResultRow({ r }: { r: Result }) {
         )}
       </button>
       {open && hasDiagnostic && (
-        <div className="px-3 pb-3 -mt-1 text-[11.5px]">
+        <div className="px-3 pb-3 -mt-1 text-[11.5px] space-y-2">
           {r.rawStatus != null && (
             <div className="font-mono text-fg-subtle">HTTP {r.rawStatus}</div>
           )}
+          {r.rawRequest && (
+            <div>
+              <div className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-fg-subtle mb-1">
+                Request body
+              </div>
+              <pre className="rounded border border-border bg-bg-soft p-2 overflow-x-auto whitespace-pre-wrap break-all text-[11px] leading-snug text-fg-muted font-mono">
+                {r.rawRequest}
+              </pre>
+            </div>
+          )}
           {r.rawBody && (
-            <pre className="mt-1.5 rounded border border-border bg-bg-soft p-2 overflow-x-auto whitespace-pre-wrap break-all text-[11px] leading-snug text-fg-muted font-mono">
-              {r.rawBody}
-            </pre>
+            <div>
+              <div className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-fg-subtle mb-1">
+                Response body
+              </div>
+              <pre className="rounded border border-border bg-bg-soft p-2 overflow-x-auto whitespace-pre-wrap break-all text-[11px] leading-snug text-fg-muted font-mono">
+                {r.rawBody}
+              </pre>
+            </div>
           )}
         </div>
       )}
