@@ -359,21 +359,55 @@ export async function POST(req: Request) {
   }
 
   // ---- GROUND TRUTH: re-fetch portfolio, cross-check positions --------
-  const afterPortfolio = await fetchPortfolio(apiKey, userKey, env);
+  // We retry up to 3 times with growing gaps because eToro takes a
+  // variable amount of time to commit a new position to the portfolio.
+  // If the position never appears, the order was silently rejected
+  // (most common cause: instrument not supported in the user's eToro
+  // environment — e.g. Xetra-listed UCITS in demo mode).
+  const VERIFY_DELAYS_MS = [3000, 4000, 5000];
+  let afterPortfolio: PortfolioInfo = {
+    credit: 0,
+    pendingTotal: 0,
+    positionIds: new Set(),
+    raw: {},
+  };
+  const stillUnconfirmed = new Set(accepted.filter((r) => r.positionId != null).map((r) => r.positionId!));
+
+  for (const delay of VERIFY_DELAYS_MS) {
+    if (stillUnconfirmed.size === 0) break;
+    await sleep(delay);
+    afterPortfolio = await fetchPortfolio(apiKey, userKey, env);
+    for (const id of Array.from(stillUnconfirmed)) {
+      if (afterPortfolio.positionIds.has(id)) stillUnconfirmed.delete(id);
+    }
+  }
+
   for (const r of accepted) {
-    if (r.positionId != null) {
-      const inPortfolio = afterPortfolio.positionIds.has(r.positionId);
-      if (inPortfolio) {
-        // Confirmed in portfolio. Trust isOpen if we got it; otherwise
-        // assume pending (safe — user knows it's there).
-        if (r.isOpen === true) r.status = "filled";
-        else r.status = "pending";
-      } else {
-        // Position record claimed by /orders/X but NOT in portfolio.
-        // This means the position was either rejected post-acceptance
-        // or hasn't been committed to the portfolio yet. Mark queued.
-        r.status = "queued";
-      }
+    if (r.positionId == null) {
+      // Order accepted by eToro but no positionID ever returned.
+      // This is itself a soft failure — the order didn't materialise.
+      r.ok = false;
+      r.status = "failed";
+      r.error =
+        "Order accepted by eToro but no position was created. " +
+        "Most likely cause: instrument not tradeable in your eToro environment " +
+        "(e.g. Xetra-listed UCITS in demo mode).";
+      continue;
+    }
+    const inPortfolio = afterPortfolio.positionIds.has(r.positionId);
+    if (inPortfolio) {
+      // Confirmed in portfolio. Trust isOpen if we got it.
+      if (r.isOpen === true) r.status = "filled";
+      else r.status = "pending";
+    } else {
+      // We were given a positionID but after up to 12 s of polling it
+      // never appeared in the live portfolio. eToro silently dropped it.
+      r.ok = false;
+      r.status = "failed";
+      r.error =
+        `Order placed (eToro returned position #${r.positionId}) but it never reached your portfolio. ` +
+        "Most likely cause: the instrument isn't tradeable in your eToro environment " +
+        "(e.g. Xetra-listed UCITS in demo mode, or instruments restricted by your regulated entity).";
     }
   }
 

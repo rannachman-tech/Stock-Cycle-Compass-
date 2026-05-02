@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, Check, ChevronDown, Clock, Hourglass, Loader2, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, ChevronDown, Loader2, X } from "lucide-react";
 import type { Basket } from "@/lib/types";
 import { allocate } from "@/lib/baskets";
-import { getSession } from "@/lib/etoro-session";
+import { getSession, ETORO_CHANGE_EVENT } from "@/lib/etoro-session";
 
 interface Props {
   open: boolean;
@@ -46,17 +46,24 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
   const [amount, setAmount] = useState<number>(1000);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [results, setResults] = useState<Result[]>([]);
-  const [diagnostics, setDiagnostics] = useState<Diagnostics | null>(null);
   const [topLevelError, setTopLevelError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  // Track session env so the modal can render a real-money warning.
+  const [sessionEnv, setSessionEnv] = useState<"real" | "demo" | null>(null);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    const sync = () => setSessionEnv(getSession()?.env ?? null);
+    sync();
+    window.addEventListener(ETORO_CHANGE_EVENT, sync);
+    return () => window.removeEventListener(ETORO_CHANGE_EVENT, sync);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
     setStep("review");
     setResults([]);
-    setDiagnostics(null);
     setTopLevelError(null);
     setExpanded(null);
   }, [open, basket?.zone, basket?.region]);
@@ -107,7 +114,6 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
       if (json.error && !json.results) {
         // Hard pre-flight failure (e.g. cash check). Show at top level.
         setTopLevelError(json.error);
-        setDiagnostics(json.diagnostics ?? null);
         setResults(
           allocations.map((h) => ({
             ticker: h.ticker,
@@ -126,7 +132,6 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
               error: json.error || `HTTP ${r.status}`,
             })),
         );
-        setDiagnostics(json.diagnostics ?? null);
       }
     } catch (e: any) {
       setResults(
@@ -165,6 +170,7 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
 
         {step === "review" && (
           <div className="p-5 space-y-4">
+            {sessionEnv === "real" && <RealMoneyBanner />}
             <p className="text-[13px] text-fg-muted leading-relaxed">{basket.thesis}</p>
 
             <div>
@@ -206,6 +212,7 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
 
         {step === "confirm" && (
           <div className="p-5 space-y-4">
+            {sessionEnv === "real" && <RealMoneyBanner />}
             <h3 className="text-[14px] font-medium text-fg">Confirm trades</h3>
             <table className="w-full text-[12.5px] tabular-nums border border-border rounded-md overflow-hidden">
               <thead className="bg-bg-soft text-fg-subtle">
@@ -278,7 +285,10 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
                 <ResultRow key={r.ticker} r={r} />
               ))}
             </div>
-            {diagnostics && <DiagnosticsBar d={diagnostics} />}
+            <p className="text-[11.5px] text-fg-subtle leading-relaxed">
+              Funds must be available in your eToro account for these orders to fill. If your balance is insufficient,
+              eToro will reject the affected legs at execution time.
+            </p>
             <button
               onClick={onClose}
               className="w-full rounded-md bg-accent text-accent-fg px-4 py-2.5 text-[13px] font-medium"
@@ -332,132 +342,65 @@ function AllocationTable({
   );
 }
 
-function ResultSummary({ results }: { results: Result[] }) {
-  const counts = results.reduce(
-    (acc, r) => {
-      acc[r.status] = (acc[r.status] ?? 0) + 1;
-      return acc;
-    },
-    {} as Record<LegStatus, number>,
+function RealMoneyBanner() {
+  return (
+    <div className="flex items-start gap-2 rounded-md border border-zone-storm/40 bg-zone-storm/10 px-3 py-2.5">
+      <AlertTriangle className="w-4 h-4 text-zone-storm shrink-0 mt-0.5" />
+      <div className="text-[12px] leading-relaxed text-fg">
+        <span className="font-medium text-zone-storm">Real money mode.</span>{" "}
+        These trades will use actual funds in your eToro account. Orders execute as market orders and cannot be
+        undone from this app.
+      </div>
+    </div>
   );
-  const total = results.length;
-  const filled = counts.filled ?? 0;
-  const pending = counts.pending ?? 0;
-  const queued = counts.queued ?? 0;
-  const failed = counts.failed ?? 0;
+}
 
-  let headline: string;
-  if (filled === total) {
-    headline = `All ${total} orders filled`;
-  } else if (filled + pending + queued === total && filled === 0) {
-    headline = `${pending + queued} of ${total} orders queued for next market open`;
-  } else if (failed === total) {
-    headline = `All ${total} orders failed — see rows for the eToro response`;
-  } else {
-    const parts: string[] = [];
-    if (filled) parts.push(`${filled} filled`);
-    if (pending) parts.push(`${pending} pending market open`);
-    if (queued) parts.push(`${queued} queued`);
-    if (failed) parts.push(`${failed} failed`);
-    headline = parts.join(" · ");
-  }
+function ResultSummary({ results }: { results: Result[] }) {
+  const total = results.length;
+  const placed = results.filter((r) => r.ok).length;
+  const failed = total - placed;
+
+  const headline =
+    placed === total
+      ? `${total} of ${total} orders placed`
+      : failed === total
+      ? `All ${total} orders failed — see rows for details`
+      : `${placed} of ${total} orders placed · ${failed} failed`;
 
   return (
     <div>
       <h3 className="text-[14px] font-medium text-fg">Execution result</h3>
       <p className="mt-1 text-[12px] text-fg-muted leading-relaxed">{headline}</p>
-      {(pending > 0 || queued > 0) && (
-        <p className="mt-1 text-[11.5px] text-fg-subtle leading-relaxed">
-          Pending positions exist in your eToro account but won't show as Open until the venue starts trading. Queued
-          orders haven't reported a position yet — refresh your eToro portfolio in a few minutes to confirm.
-        </p>
-      )}
-    </div>
-  );
-}
-
-function DiagnosticsBar({ d }: { d: Diagnostics }) {
-  const items: Array<[string, string]> = [];
-  if (d.env) items.push(["env", d.env]);
-  if (typeof d.creditBefore === "number")
-    items.push(["credit", `$${d.creditBefore.toFixed(2)}`]);
-  if (typeof d.pendingBefore === "number")
-    items.push(["pending", `$${d.pendingBefore.toFixed(2)}`]);
-  if (typeof d.availableCashBefore === "number")
-    items.push(["available", `$${d.availableCashBefore.toFixed(2)}`]);
-  if (typeof d.basketTotal === "number")
-    items.push(["basket", `$${d.basketTotal.toFixed(2)}`]);
-  if (
-    typeof d.portfolioPositionCountBefore === "number" &&
-    typeof d.portfolioPositionCountAfter === "number"
-  ) {
-    items.push([
-      "portfolio Δ",
-      `${d.portfolioPositionCountBefore} → ${d.portfolioPositionCountAfter}`,
-    ]);
-  }
-  if (items.length === 0) return null;
-  return (
-    <div className="rounded-md border border-border bg-bg-soft px-3 py-2 text-[10.5px] font-mono text-fg-subtle">
-      <div className="uppercase tracking-[0.16em] mb-1.5">eToro round-trip</div>
-      <div className="flex flex-wrap gap-x-3 gap-y-1">
-        {items.map(([k, v]) => (
-          <span key={k}>
-            <span className="text-fg-subtle">{k}</span>{" "}
-            <span className="text-fg-muted tabular-nums">{v}</span>
-          </span>
-        ))}
-      </div>
     </div>
   );
 }
 
 function ResultRow({ r }: { r: Result }) {
   const [open, setOpen] = useState(false);
-  const hasDiagnostic = r.rawBody != null || r.rawStatus != null || r.rawRequest != null;
+  // We only let users expand a row when something failed and there's
+  // diagnostic info to show. Successful rows stay quiet.
+  const hasDiagnostic =
+    !r.ok && (r.rawBody != null || r.rawStatus != null || r.rawRequest != null);
 
-  // Pick icon + colour from status
-  const Icon =
-    r.status === "filled" ? Check :
-    r.status === "pending" ? Hourglass :
-    r.status === "queued" ? Clock :
-    X;
-  const iconColour =
-    r.status === "filled" ? "text-zone-clear" :
-    r.status === "pending" ? "text-zone-watch" :
-    r.status === "queued" ? "text-fg-muted" :
-    "text-zone-storm";
-
-  // Build the status detail line
-  const detail = (() => {
-    if (r.status === "failed") return r.error ?? "Rejected";
-    const id = r.positionId ?? r.orderId;
-    const idLabel =
-      r.positionId != null ? `#${r.positionId}` :
-      r.orderId != null ? `Order #${r.orderId}` :
-      "";
-    const fillDetail =
-      r.rate != null && r.units != null
-        ? ` · ${r.units.toFixed(4)} @ ${r.rate.toFixed(4)}`
-        : "";
-    if (r.status === "filled") return `Filled ${idLabel}${fillDetail}`;
-    if (r.status === "pending") return `Pending Open ${idLabel} — waits for market`;
-    if (r.status === "queued") return `Queued ${idLabel} — eToro hasn't reported a position yet`;
-    return idLabel;
-  })();
   return (
     <div>
       <button
         onClick={() => hasDiagnostic && setOpen((v) => !v)}
         className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left ${
-          hasDiagnostic ? "hover:bg-bg-soft" : ""
+          hasDiagnostic ? "hover:bg-bg-soft cursor-pointer" : "cursor-default"
         }`}
         aria-expanded={open}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <Icon className={`w-3.5 h-3.5 ${iconColour} shrink-0`} />
+          {r.ok ? (
+            <Check className="w-3.5 h-3.5 text-zone-clear shrink-0" />
+          ) : (
+            <X className="w-3.5 h-3.5 text-zone-storm shrink-0" />
+          )}
           <div className="font-mono text-[11.5px] text-fg w-14 shrink-0">{r.ticker}</div>
-          <div className="text-[12.5px] text-fg-muted truncate">{detail}</div>
+          {!r.ok && (
+            <div className="text-[12.5px] text-zone-storm truncate">{r.error ?? "Rejected"}</div>
+          )}
         </div>
         {hasDiagnostic && (
           <ChevronDown

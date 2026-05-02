@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowRight, Wallet } from "lucide-react";
 import type { Zone } from "@/lib/types";
 import { getSession, ETORO_CHANGE_EVENT, type EtoroSession } from "@/lib/etoro-session";
 
@@ -40,14 +40,17 @@ const COPY: Record<Zone, { kicker: string; title: string; sub: string; cta: stri
 
 export default function ConnectEtoroCta({ zone, onTradeClick, onConnectClick }: Props) {
   const c = COPY[zone];
-  const [connected, setConnected] = useState(false);
+  const [session, setSession] = useState<EtoroSession | null>(null);
 
   useEffect(() => {
-    setConnected(!!getSession());
-    const sync = () => setConnected(!!getSession());
+    setSession(getSession());
+    const sync = () => setSession(getSession());
     window.addEventListener(ETORO_CHANGE_EVENT, sync);
     return () => window.removeEventListener(ETORO_CHANGE_EVENT, sync);
   }, []);
+
+  const connected = !!session;
+  const isReal = session?.env === "real";
 
   return (
     <div className="rounded-lg border border-border bg-surface-elev p-5">
@@ -61,6 +64,17 @@ export default function ConnectEtoroCta({ zone, onTradeClick, onConnectClick }: 
         {c.title}
       </div>
       <p className="mt-2 text-[13px] text-fg-muted leading-relaxed">{c.sub}</p>
+
+      {isReal && (
+        <div className="mt-3 flex items-start gap-2 rounded-md border border-zone-storm/40 bg-zone-storm/10 px-2.5 py-2">
+          <AlertTriangle className="w-3.5 h-3.5 text-zone-storm shrink-0 mt-0.5" />
+          <div className="text-[11.5px] leading-snug text-fg">
+            <span className="font-medium text-zone-storm">Real money mode.</span>{" "}
+            Trades will use actual funds in your eToro account.
+          </div>
+        </div>
+      )}
+
       <button
         onClick={connected ? onTradeClick : onConnectClick}
         className="mt-4 inline-flex w-full items-center justify-between rounded-md bg-accent text-accent-fg px-3.5 py-2.5 text-[13px] font-medium hover:opacity-90 transition-opacity"
@@ -69,7 +83,7 @@ export default function ConnectEtoroCta({ zone, onTradeClick, onConnectClick }: 
         <ArrowRight className="w-4 h-4" />
       </button>
       <p className="mt-2 text-[10.5px] text-fg-subtle leading-snug">
-        Direct from eToro. Make sure you have the required funds available in your account. Not financial advice.
+        Funds must be available in your eToro account for orders to fill. Not financial advice.
       </p>
     </div>
   );
