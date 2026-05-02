@@ -19,6 +19,8 @@ type Result = {
   ok: boolean;
   orderId?: number;
   positionId?: number;
+  rate?: number;
+  units?: number;
   error?: string;
   rawStatus?: number;
   rawBody?: string;
@@ -204,7 +206,10 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
           <div className="p-8 flex flex-col items-center gap-3">
             <Loader2 className="w-6 h-6 text-accent animate-spin" />
             <div className="text-[13px] text-fg-muted">
-              Submitting orders to eToro…
+              Submitting orders, then waiting for fills…
+            </div>
+            <div className="text-[11.5px] text-fg-subtle text-center max-w-xs">
+              eToro returns each order ID immediately; positions take a couple of seconds to settle.
             </div>
           </div>
         )}
@@ -272,12 +277,19 @@ function AllocationTable({
 
 function ResultRow({ r }: { r: Result }) {
   const [open, setOpen] = useState(false);
-  const filledId = r.positionId ?? r.orderId;
-  const statusLabel = r.ok && typeof filledId === "number"
-    ? `Filled #${filledId}`
-    : r.ok
-    ? "Accepted"
-    : r.error ?? "Rejected";
+  // Prefer positionID (the executed fill) over orderID (just the queued order).
+  const statusLabel = (() => {
+    if (!r.ok) return r.error ?? "Rejected";
+    if (typeof r.positionId === "number") {
+      const detail =
+        r.rate != null && r.units != null
+          ? ` · ${r.units.toFixed(4)} @ ${r.rate.toFixed(4)}`
+          : "";
+      return `Filled #${r.positionId}${detail}`;
+    }
+    if (typeof r.orderId === "number") return `Order #${r.orderId} placed`;
+    return "Accepted";
+  })();
   const hasDiagnostic = r.rawBody != null || r.rawStatus != null;
   return (
     <div>
