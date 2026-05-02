@@ -1,0 +1,119 @@
+{
+  "generatedAt": "2026-05-02T06:15:00Z",
+  "regions": {
+    "us": {
+      "region": "us",
+      "regionLabel": "United States",
+      "percentile": 87,
+      "wheelDegrees": 213,
+      "zone": "warning",
+      "impliedFairValue": 4180,
+      "insights": {
+        "headline": "Stocks are priced for perfection. History rhymes here.",
+        "body": [
+          "US equities sit in the 87th percentile of long-run valuation — only 1929, 1999 and 2021 ran hotter at this stage of a cycle. Buffett ratio at 196% of GDP, CAPE near 35, forward P/E above 22.",
+          "Earnings are still expanding and breadth has not yet broken — that's why the wheel parks in late cycle, not the storm. But the equity-risk premium is the thinnest it has been since the dot-com era; you are no longer being paid to take stock risk over T-bills.",
+          "Late-cycle is where the biggest annual returns happen — and where the biggest drawdowns begin. Both can be true at once."
+        ],
+        "asOf": "2026-05-02"
+      },
+      "indicators": [
+        { "key": "buffett",   "label": "Buffett ratio (Wilshire / GDP)", "shortLabel": "Buffett",  "value": 196, "unit": "%", "percentile": 92, "asOf": "2026-04-30", "source": "FRED + Wilshire", "sourceUrl": "https://fred.stlouisfed.org/", "stale": false, "higherIsExpensive": true,  "longRunMean": 86,  "longRunMedian": 78 },
+        { "key": "cape",      "label": "Shiller CAPE",                   "shortLabel": "CAPE",     "value": 34.6, "unit": "x", "percentile": 91, "asOf": "2026-04-30", "source": "Shiller / Yale", "sourceUrl": "https://shillerdata.com/", "stale": false, "higherIsExpensive": true, "longRunMean": 17.2, "longRunMedian": 16.0 },
+        { "key": "fwdPe",     "label": "S&P 500 forward P/E",            "shortLabel": "Fwd P/E",  "value": 22.1, "unit": "x", "percentile": 84, "asOf": "2026-04-30", "source": "FactSet / Yahoo", "sourceUrl": "https://finance.yahoo.com/", "stale": false, "higherIsExpensive": true, "longRunMean": 16.0, "longRunMedian": 15.5 },
+        { "key": "erp",       "label": "Equity risk premium",            "shortLabel": "ERP",      "value": 0.4, "unit": "%", "percentile": 5,  "asOf": "2026-04-30", "source": "Damodaran method", "sourceUrl": "https://pages.stern.nyu.edu/~adamodar/", "stale": false, "higherIsExpensive": false, "longRunMean": 4.2, "longRunMedian": 4.0 },
+        { "key": "breadth",   "label": "% S&P stocks > 200d MA",          "shortLabel": "Breadth",  "value": 58, "unit": "%", "percentile": 56, "asOf": "2026-05-01", "source": "Yahoo / Stockcharts", "sourceUrl": "https://stockcharts.com/", "stale": false, "higherIsExpensive": false, "longRunMean": 62, "longRunMedian": 64 },
+        { "key": "aaii",      "label": "AAII bull-bear spread",          "shortLabel": "AAII",     "value": 28, "unit": "%", "percentile": 86, "asOf": "2026-04-30", "source": "AAII Sentiment Survey", "sourceUrl": "https://www.aaii.com/sentimentsurvey", "stale": false, "higherIsExpensive": true, "longRunMean": 6.4, "longRunMedian": 6.0 },
+        { "key": "vix",       "label": "VIX (1-yr percentile)",          "shortLabel": "VIX",      "value": 13.2, "unit": "", "percentile": 12, "asOf": "2026-05-01", "source": "FRED VIXCLS", "sourceUrl": "https://fred.stlouisfed.org/series/VIXCLS", "stale": false, "higherIsExpensive": false, "longRunMean": 19.3, "longRunMedian": 17.5 },
+        { "key": "yieldCurve","label": "10y - 2y spread",                "shortLabel": "Curve",    "value": 0.35, "unit": "pp", "percentile": 62, "asOf": "2026-05-01", "source": "FRED T10Y2Y", "sourceUrl": "https://fred.stlouisfed.org/series/T10Y2Y", "stale": false, "higherIsExpensive": false, "longRunMean": 0.95, "longRunMedian": 1.05 },
+        { "key": "fedFunds",  "label": "Fed funds rate",                 "shortLabel": "Fed funds","value": 3.75, "unit": "%", "percentile": 64, "asOf": "2026-04-30", "source": "FRED FEDFUNDS", "sourceUrl": "https://fred.stlouisfed.org/series/FEDFUNDS", "stale": false, "higherIsExpensive": true, "longRunMean": 4.6, "longRunMedian": 4.5 }
+      ],
+      "generatedAt": "2026-05-02T06:15:00Z"
+    },
+    "eu": {
+      "region": "eu",
+      "regionLabel": "Europe",
+      "percentile": 54,
+      "wheelDegrees": 134,
+      "zone": "watch",
+      "insights": {
+        "headline": "Mid-cycle Europe — cheaper than the US, but not by accident.",
+        "body": [
+          "STOXX 600 trades at a forward P/E of 14, a 35% discount to the S&P. Earnings are still recovering from the 2024 industrial slowdown; CAPE is in the 50th percentile.",
+          "Cyclicals have led the rebound and breadth is improving. ECB has stopped cutting. The cycle is mid-innings — neither cheap nor extended.",
+          "The most boring zone on the wheel is also where the longest expansions live."
+        ],
+        "asOf": "2026-05-02"
+      },
+      "indicators": [
+        { "key": "buffett",   "label": "Total mkt cap / GDP (EU-19)",    "shortLabel": "Buffett",  "value": 78, "unit": "%", "percentile": 60, "asOf": "2026-04-30", "source": "ECB + Eurostat", "sourceUrl": "https://www.ecb.europa.eu/", "stale": false, "higherIsExpensive": true,  "longRunMean": 65,  "longRunMedian": 62 },
+        { "key": "cape",      "label": "Europe CAPE (Barclays)",         "shortLabel": "CAPE",     "value": 19.4, "unit": "x", "percentile": 48, "asOf": "2026-04-30", "source": "Barclays / Star Capital", "sourceUrl": "https://www.starcapital.de/en/research/", "stale": false, "higherIsExpensive": true, "longRunMean": 19.0, "longRunMedian": 18.8 },
+        { "key": "fwdPe",     "label": "STOXX 600 forward P/E",          "shortLabel": "Fwd P/E",  "value": 14.0, "unit": "x", "percentile": 52, "asOf": "2026-04-30", "source": "FactSet", "sourceUrl": "https://www.factset.com/", "stale": false, "higherIsExpensive": true, "longRunMean": 13.8, "longRunMedian": 13.6 },
+        { "key": "erp",       "label": "Equity risk premium",            "shortLabel": "ERP",      "value": 4.2, "unit": "%", "percentile": 58, "asOf": "2026-04-30", "source": "Damodaran method", "sourceUrl": "https://pages.stern.nyu.edu/~adamodar/", "stale": false, "higherIsExpensive": false, "longRunMean": 4.6, "longRunMedian": 4.4 },
+        { "key": "breadth",   "label": "% STOXX 600 > 200d MA",           "shortLabel": "Breadth",  "value": 64, "unit": "%", "percentile": 64, "asOf": "2026-05-01", "source": "Stockcharts", "sourceUrl": "https://stockcharts.com/", "stale": false, "higherIsExpensive": false, "longRunMean": 60, "longRunMedian": 62 },
+        { "key": "aaii",      "label": "Sentix Investor Confidence",     "shortLabel": "Sentix",   "value": 4.1, "unit": "", "percentile": 60, "asOf": "2026-04-30", "source": "Sentix", "sourceUrl": "https://www.sentix.de/", "stale": false, "higherIsExpensive": true, "longRunMean": -2.0, "longRunMedian": -1.5 },
+        { "key": "vix",       "label": "VSTOXX (1-yr pct)",              "shortLabel": "VSTOXX",   "value": 16.2, "unit": "", "percentile": 30, "asOf": "2026-05-01", "source": "STOXX", "sourceUrl": "https://www.stoxx.com/", "stale": false, "higherIsExpensive": false, "longRunMean": 21.8, "longRunMedian": 19.0 },
+        { "key": "yieldCurve","label": "Bund 10y - 2y",                  "shortLabel": "Curve",    "value": 0.55, "unit": "pp", "percentile": 56, "asOf": "2026-05-01", "source": "Bundesbank", "sourceUrl": "https://www.bundesbank.de/", "stale": false, "higherIsExpensive": false, "longRunMean": 0.85, "longRunMedian": 0.95 },
+        { "key": "fedFunds",  "label": "ECB deposit rate",               "shortLabel": "ECB",      "value": 2.25, "unit": "%", "percentile": 58, "asOf": "2026-04-30", "source": "ECB", "sourceUrl": "https://www.ecb.europa.eu/", "stale": false, "higherIsExpensive": true, "longRunMean": 1.5, "longRunMedian": 1.0 }
+      ],
+      "generatedAt": "2026-05-02T06:15:00Z"
+    },
+    "uk": {
+      "region": "uk",
+      "regionLabel": "United Kingdom",
+      "percentile": 36,
+      "wheelDegrees": 96,
+      "zone": "watch",
+      "insights": {
+        "headline": "FTSE is what cheap looks like — and why cheap can stay cheap.",
+        "body": [
+          "FTSE 100 forward P/E of 11.6, dividend yield 3.9%, CAPE in the 38th percentile — UK large-caps remain the most discounted developed market.",
+          "Energy and financials still dominate; that's a feature when the cycle rotates from growth to value, a bug when AI capex carries the indices.",
+          "Mid-cycle on valuation, but the structural under-ownership keeps the wheel from drifting into the cheaper quadrant."
+        ],
+        "asOf": "2026-05-02"
+      },
+      "indicators": [
+        { "key": "buffett",   "label": "UK total mkt cap / GDP",         "shortLabel": "Buffett",  "value": 88, "unit": "%", "percentile": 32, "asOf": "2026-04-30", "source": "ONS + LSE", "sourceUrl": "https://www.ons.gov.uk/", "stale": false, "higherIsExpensive": true,  "longRunMean": 110,  "longRunMedian": 108 },
+        { "key": "cape",      "label": "UK CAPE",                         "shortLabel": "CAPE",     "value": 14.8, "unit": "x", "percentile": 38, "asOf": "2026-04-30", "source": "Barclays / Star Capital", "sourceUrl": "https://www.starcapital.de/en/research/", "stale": false, "higherIsExpensive": true, "longRunMean": 16.6, "longRunMedian": 16.0 },
+        { "key": "fwdPe",     "label": "FTSE 100 forward P/E",           "shortLabel": "Fwd P/E",  "value": 11.6, "unit": "x", "percentile": 30, "asOf": "2026-04-30", "source": "FactSet", "sourceUrl": "https://www.factset.com/", "stale": false, "higherIsExpensive": true, "longRunMean": 13.2, "longRunMedian": 12.8 },
+        { "key": "erp",       "label": "UK ERP",                         "shortLabel": "ERP",      "value": 5.4, "unit": "%", "percentile": 70, "asOf": "2026-04-30", "source": "Damodaran method", "sourceUrl": "https://pages.stern.nyu.edu/~adamodar/", "stale": false, "higherIsExpensive": false, "longRunMean": 4.8, "longRunMedian": 4.6 },
+        { "key": "breadth",   "label": "% FTSE 350 > 200d MA",            "shortLabel": "Breadth",  "value": 56, "unit": "%", "percentile": 50, "asOf": "2026-05-01", "source": "Stockcharts", "sourceUrl": "https://stockcharts.com/", "stale": false, "higherIsExpensive": false, "longRunMean": 58, "longRunMedian": 60 },
+        { "key": "aaii",      "label": "GfK consumer confidence",        "shortLabel": "GfK",      "value": -10, "unit": "", "percentile": 32, "asOf": "2026-04-30", "source": "GfK NOP", "sourceUrl": "https://www.gfk.com/", "stale": false, "higherIsExpensive": true, "longRunMean": -8, "longRunMedian": -10 },
+        { "key": "vix",       "label": "FTSE IVI (1-yr pct)",            "shortLabel": "IVI",      "value": 14.8, "unit": "", "percentile": 24, "asOf": "2026-05-01", "source": "ICE", "sourceUrl": "https://www.theice.com/", "stale": false, "higherIsExpensive": false, "longRunMean": 18.2, "longRunMedian": 16.5 },
+        { "key": "yieldCurve","label": "Gilt 10y - 2y",                  "shortLabel": "Curve",    "value": 0.45, "unit": "pp", "percentile": 60, "asOf": "2026-05-01", "source": "BoE", "sourceUrl": "https://www.bankofengland.co.uk/", "stale": false, "higherIsExpensive": false, "longRunMean": 0.7, "longRunMedian": 0.8 },
+        { "key": "fedFunds",  "label": "Bank of England base rate",      "shortLabel": "BoE",      "value": 4.0, "unit": "%", "percentile": 60, "asOf": "2026-04-30", "source": "BoE IUDSOIA", "sourceUrl": "https://www.bankofengland.co.uk/boeapps/database/", "stale": false, "higherIsExpensive": true, "longRunMean": 3.6, "longRunMedian": 3.5 }
+      ],
+      "generatedAt": "2026-05-02T06:15:00Z"
+    },
+    "global": {
+      "region": "global",
+      "regionLabel": "Global",
+      "percentile": 72,
+      "wheelDegrees": 187,
+      "zone": "warning",
+      "insights": {
+        "headline": "MSCI World leans US-rich. The cycle leans late.",
+        "body": [
+          "MSCI All-Country World forward P/E of 18.6, CAPE in the 73rd percentile globally. Two-thirds of the index is the US, so global valuations are downstream of S&P pricing.",
+          "Outside North America, conditions are mid-cycle. Inside it, late-cycle. The blend tips global into warning territory — but only just.",
+          "Diversification across regions is more useful here than at most points in the cycle, because the dispersion across regions is unusually wide."
+        ],
+        "asOf": "2026-05-02"
+      },
+      "indicators": [
+        { "key": "buffett",   "label": "Global mkt cap / world GDP",     "shortLabel": "Buffett",  "value": 124, "unit": "%", "percentile": 80, "asOf": "2026-04-30", "source": "World Bank + Bloomberg", "sourceUrl": "https://data.worldbank.org/", "stale": false, "higherIsExpensive": true, "longRunMean": 92, "longRunMedian": 88 },
+        { "key": "cape",      "label": "MSCI World CAPE",                 "shortLabel": "CAPE",     "value": 26.5, "unit": "x", "percentile": 73, "asOf": "2026-04-30", "source": "Barclays / Star Capital", "sourceUrl": "https://www.starcapital.de/en/research/", "stale": false, "higherIsExpensive": true, "longRunMean": 21.0, "longRunMedian": 20.0 },
+        { "key": "fwdPe",     "label": "MSCI ACWI forward P/E",          "shortLabel": "Fwd P/E",  "value": 18.6, "unit": "x", "percentile": 70, "asOf": "2026-04-30", "source": "MSCI", "sourceUrl": "https://www.msci.com/", "stale": false, "higherIsExpensive": true, "longRunMean": 15.4, "longRunMedian": 15.0 },
+        { "key": "erp",       "label": "Global ERP (proxy)",             "shortLabel": "ERP",      "value": 2.4, "unit": "%", "percentile": 22, "asOf": "2026-04-30", "source": "Damodaran method", "sourceUrl": "https://pages.stern.nyu.edu/~adamodar/", "stale": false, "higherIsExpensive": false, "longRunMean": 4.4, "longRunMedian": 4.2 },
+        { "key": "breadth",   "label": "% MSCI World > 200d MA",         "shortLabel": "Breadth",  "value": 60, "unit": "%", "percentile": 58, "asOf": "2026-05-01", "source": "MSCI / Stockcharts", "sourceUrl": "https://stockcharts.com/", "stale": false, "higherIsExpensive": false, "longRunMean": 60, "longRunMedian": 62 },
+        { "key": "aaii",      "label": "BofA Bull-Bear",                 "shortLabel": "BAML",     "value": 6.8, "unit": "", "percentile": 76, "asOf": "2026-04-30", "source": "BofA Global Research", "sourceUrl": "https://www.bofa.com/", "stale": false, "higherIsExpensive": true, "longRunMean": 4.5, "longRunMedian": 4.2 },
+        { "key": "vix",       "label": "Global vol composite",            "shortLabel": "Vol",      "value": 14.6, "unit": "", "percentile": 22, "asOf": "2026-05-01", "source": "Composite", "sourceUrl": "https://www.cboe.com/", "stale": false, "higherIsExpensive": false, "longRunMean": 19.0, "longRunMedian": 17.5 },
+        { "key": "yieldCurve","label": "G7 average 10y - 2y",            "shortLabel": "Curve",    "value": 0.42, "unit": "pp", "percentile": 60, "asOf": "2026-05-01", "source": "OECD", "sourceUrl": "https://data.oecd.org/", "stale": false, "higherIsExpensive": false, "longRunMean": 0.85, "longRunMedian": 0.95 },
+        { "key": "fedFunds",  "label": "G7 weighted policy rate",        "shortLabel": "Policy",   "value": 3.4, "unit": "%", "percentile": 60, "asOf": "2026-04-30", "source": "BIS", "sourceUrl": "https://www.bis.org/", "stale": false, "higherIsExpensive": true, "longRunMean": 3.2, "longRunMedian": 3.0 }
+      ],
+      "generatedAt": "2026-05-02T06:15:00Z"
+    }
+  },
+  "capeHistory": []
+}

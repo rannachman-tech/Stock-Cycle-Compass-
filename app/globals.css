@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light theme — paper / brass */
+  --bg: 250 249 246;             /* warm paper white */
+  --bg-soft: 244 242 237;
+  --surface: 255 255 254;
+  --surface-elev: 250 249 246;
+  --border: 226 220 207;
+  --border-strong: 200 192 175;
+  --fg: 28 27 24;
+  --fg-muted: 88 84 76;
+  --fg-subtle: 130 124 113;
+
+  /* Accent — distinct from Recession Compass. Brass/teal for cycle compass. */
+  --accent: 13 110 113;          /* deep teal — patinated brass */
+  --accent-soft: 230 240 240;
+  --accent-fg: 255 255 255;
+
+  /* Zone palette */
+  --zone-clear: 56 130 95;       /* moss */
+  --zone-watch: 184 132 41;      /* gold */
+  --zone-warning: 196 96 41;     /* burnt orange */
+  --zone-storm: 168 56 56;       /* deep red */
+}
+
+.dark {
+  /* Dark theme — graphite / brass */
+  --bg: 14 16 18;
+  --bg-soft: 20 22 25;
+  --surface: 24 26 30;
+  --surface-elev: 30 33 38;
+  --border: 44 49 56;
+  --border-strong: 64 70 80;
+  --fg: 232 230 225;
+  --fg-muted: 168 164 156;
+  --fg-subtle: 124 120 112;
+
+  --accent: 56 188 184;          /* brighter teal in dark */
+  --accent-soft: 22 36 38;
+  --accent-fg: 14 16 18;
+
+  --zone-clear: 92 178 132;
+  --zone-watch: 220 168 72;
+  --zone-warning: 230 132 72;
+  --zone-storm: 220 96 96;
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+  font-feature-settings: "ss01", "cv11";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: rgb(var(--accent) / 0.25);
+}
+
+/* Subtle scrollbars */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: rgb(var(--border-strong) / 0.6);
+  border-radius: 6px;
+  border: 2px solid rgb(var(--bg));
+}
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Cycle wheel breathing animation */
+@keyframes wheel-needle-drift {
+  0%, 100% { transform: rotate(var(--needle-angle, 0deg)); }
+  50% { transform: rotate(calc(var(--needle-angle, 0deg) + 0.6deg)); }
+}
+
+.cycle-needle {
+  animation: wheel-needle-drift 7s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Spiral shimmer */
+@keyframes spiral-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+.spiral-current { animation: spiral-pulse 3.2s ease-in-out infinite; }
