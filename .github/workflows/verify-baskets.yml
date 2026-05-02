@@ -1,0 +1,20 @@
+name: Verify eToro baskets
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - "lib/baskets.ts"
+      - "scripts/verify-baskets.ts"
+      - "scripts/simulate-baskets.ts"
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npm run verify:baskets
+      - run: npm run simulate:baskets
