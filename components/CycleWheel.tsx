@@ -254,39 +254,39 @@ export default function CycleWheel({ percentile, degrees, zone, tag }: Props) {
         {/* Center text — the percentile.
             Big number + accent "%" mark + small "ile" superscript so it
             reads unambiguously as "percentile" not "percent". */}
-        <text x={CX} y={CY - 4}
+        <text x={CX} y={CY - 3}
               textAnchor="middle"
               dominantBaseline="central"
               fontFamily="var(--font-geist-sans), system-ui, sans-serif"
-              fontSize="48"
+              fontSize="36"
               fontWeight="450"
-              letterSpacing="-1.8"
+              letterSpacing="-1.2"
               fill="rgb(var(--fg))">
           {pctRounded}
           <tspan
-            fontSize="20"
-            dx="1.5"
-            dy="-2"
+            fontSize="16"
+            dx="1.2"
+            dy="-1.5"
             fontFamily="var(--font-geist-sans), system-ui, sans-serif"
             fontWeight="500"
             fill="rgb(var(--accent))">
             %
           </tspan>
           <tspan
-            fontSize="10"
-            dx="0.5"
-            dy="-11"
+            fontSize="8.5"
+            dx="0.4"
+            dy="-9"
             fontFamily="var(--font-geist-mono), ui-monospace, monospace"
             fill="rgb(var(--fg-subtle) / 0.85)"
             letterSpacing="0.3">
             ile
           </tspan>
         </text>
-        <text x={CX} y={CY + 24}
+        <text x={CX} y={CY + 19}
               textAnchor="middle"
               dominantBaseline="central"
               fontFamily="var(--font-geist-mono), ui-monospace, monospace"
-              fontSize="8.5"
+              fontSize="8"
               fill="rgb(var(--fg-subtle) / 0.7)"
               letterSpacing="2.4"
               style={{ textTransform: "uppercase" }}>
