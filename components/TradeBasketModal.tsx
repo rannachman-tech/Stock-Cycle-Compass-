@@ -6,6 +6,7 @@ import { AlertTriangle, ArrowLeft, Check, ChevronDown, Loader2, X } from "lucide
 import type { Basket } from "@/lib/types";
 import { allocate } from "@/lib/baskets";
 import { getSession, ETORO_CHANGE_EVENT } from "@/lib/etoro-session";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
 interface Props {
   open: boolean;
@@ -59,16 +60,15 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
     setExpanded(null);
   }, [open, basket?.zone, basket?.region]);
 
+  // Lock body scroll WITH scrollbar-width compensation so the page doesn't
+  // jump when the modal opens.
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && step !== "executing" && onClose();
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
+    return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose, step]);
 
   const allocations = useMemo(() => {
@@ -139,8 +139,8 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
         onClick={step !== "executing" ? onClose : undefined}
       />
 
-      <div className="relative w-full max-w-lg rounded-lg border border-border bg-surface shadow-2xl">
-        <div className="flex items-center justify-between p-5 border-b border-border">
+      <div className="relative w-full max-w-lg max-h-[90vh] flex flex-col rounded-xl border border-border bg-surface shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-border shrink-0">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
               {basket.region.toUpperCase()} · {basket.zone.toUpperCase()}
@@ -148,12 +148,17 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
             <h2 className="mt-1 text-lg font-medium text-fg">{basket.title}</h2>
           </div>
           {step !== "executing" && (
-            <button onClick={onClose} className="p-1 text-fg-subtle hover:text-fg">
+            <button
+              onClick={onClose}
+              aria-label="Close trade dialog"
+              className="p-1 text-fg-subtle hover:text-fg rounded-md focus-visible:ring-2 focus-visible:ring-accent/40"
+            >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
+        <div className="flex-1 overflow-y-auto">
         {step === "review" && (
           <div className="p-5 space-y-4">
             {sessionEnv === "real" && <RealMoneyBanner />}
@@ -280,6 +285,7 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>,
     document.body,

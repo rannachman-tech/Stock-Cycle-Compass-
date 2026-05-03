@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Loader2, X } from "lucide-react";
 import { saveSession } from "@/lib/etoro-session";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
 interface Props {
   open: boolean;
@@ -25,16 +26,13 @@ export default function ConnectEtoroModal({ open, onClose }: Props) {
 
   useEffect(() => setMounted(true), []);
 
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && status.kind !== "testing" && onClose();
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
+    return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose, status.kind]);
 
   if (!mounted || !open) return null;
@@ -86,20 +84,24 @@ export default function ConnectEtoroModal({ open, onClose }: Props) {
         className="absolute inset-0 bg-black/45 backdrop-blur-sm"
         onClick={status.kind !== "testing" ? onClose : undefined}
       />
-      <div className="relative w-full max-w-md rounded-lg border border-border bg-surface shadow-2xl">
-        <div className="flex items-center justify-between p-5 border-b border-border">
+      <div className="relative w-full max-w-md max-h-[90vh] flex flex-col rounded-xl border border-border bg-surface shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-border shrink-0">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
               eToro · API connect
             </div>
             <h2 className="mt-1 text-lg font-medium text-fg">Connect your eToro account</h2>
           </div>
-          <button onClick={status.kind !== "testing" ? onClose : undefined} className="p-1 text-fg-subtle hover:text-fg">
+          <button
+            onClick={status.kind !== "testing" ? onClose : undefined}
+            aria-label="Close connect dialog"
+            className="p-1 text-fg-subtle hover:text-fg rounded-md focus-visible:ring-2 focus-visible:ring-accent/40"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <Field
             label="Public API Key"
             value={apiKey}

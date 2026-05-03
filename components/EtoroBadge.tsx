@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LinkIcon, X } from "lucide-react";
 import { getSession, clearSession, ETORO_CHANGE_EVENT, type EtoroSession } from "@/lib/etoro-session";
 
@@ -10,9 +10,12 @@ interface Props {
 
 export default function EtoroBadge({ onConnectClick }: Props) {
   const [session, setSession] = useState<EtoroSession | null>(null);
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMounted(true);
     setSession(getSession());
     const sync = () => setSession(getSession());
     window.addEventListener(ETORO_CHANGE_EVENT, sync);
@@ -22,6 +25,31 @@ export default function EtoroBadge({ onConnectClick }: Props) {
       window.removeEventListener("storage", sync);
     };
   }, []);
+
+  // Outside-click + ESC to close the dropdown menu
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent | TouchEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  // Avoid hydration flash — render an invisible placeholder until mounted.
+  // After hydration we render whichever real button (Connect / @username) we have.
+  if (!mounted) {
+    return <div className="w-[110px] h-[30px]" aria-hidden="true" />;
+  }
 
   if (!session) {
     return (
@@ -37,10 +65,12 @@ export default function EtoroBadge({ onConnectClick }: Props) {
   }
 
   return (
-    <div className="relative">
+    <div ref={wrapRef} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12px]"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12px] focus-visible:ring-2 focus-visible:ring-accent/40"
       >
         <span className="relative flex h-2 w-2">
           <span className="absolute inset-0 rounded-full bg-zone-clear opacity-50 animate-ping" />

@@ -49,7 +49,16 @@ export default function RegionView({ data, pro, onConnectClick }: Props) {
             />
           </div>
           <PositionLadder zone={snap.zone} />
-          {pro && <ProDetails snap={snap} region={region} />}
+          {/* ProDetails fades in/out instead of mounting/unmounting — avoids
+              the right column resizing every Pro/Plain toggle. */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-out w-full max-w-[440px] ${
+              pro ? "max-h-[600px] opacity-100 mt-0" : "max-h-0 opacity-0 mt-0 pointer-events-none"
+            }`}
+            aria-hidden={!pro}
+          >
+            <ProDetails snap={snap} region={region} />
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">

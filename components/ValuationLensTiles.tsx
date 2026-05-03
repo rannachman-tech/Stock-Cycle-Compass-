@@ -233,12 +233,22 @@ function Tooltip({ ind, align }: { ind: Indicator; align: TooltipAlign }) {
   const exp = EXPLAINERS[ind.key];
   if (!exp) return null;
 
+  // Mobile (<640px): render as a fixed sheet centred horizontally so it
+  // doesn't clip the narrow tile. Desktop: keep the small bubble anchored
+  // above the tile.
   const alignClass =
-    align === "left" ? "left-0" : align === "right" ? "right-0" : "left-1/2 -translate-x-1/2";
+    align === "left" ? "sm:left-0" : align === "right" ? "sm:right-0" : "sm:left-1/2 sm:-translate-x-1/2";
 
   return (
     <div
-      className={`absolute z-30 ${alignClass} bottom-[calc(100%+8px)] w-[280px] sm:w-[320px] rounded-md border border-border-strong bg-surface-elev shadow-lg p-3.5 pointer-events-none`}
+      className={`
+        absolute z-30
+        left-1/2 -translate-x-1/2
+        ${alignClass}
+        bottom-[calc(100%+8px)]
+        w-[min(calc(100vw-2rem),320px)] sm:w-[320px]
+        rounded-lg border border-border-strong bg-surface-elev shadow-xl p-3.5 pointer-events-none
+      `}
       role="tooltip"
     >
       <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-accent">

@@ -66,38 +66,51 @@ export default function CapeSpiral({ history }: Props) {
     [],
   );
 
-  // Hovering: snap to nearest year on horizontal-scroll mobile too
+  // Hovering / touching: snap to nearest year. Works on desktop hover and
+  // mobile touch (touchstart + touchmove).
   useEffect(() => {
     if (!ref.current) return;
     const el = ref.current;
-    function onMove(e: MouseEvent) {
+    const findNearest = (clientX: number, clientY: number) => {
       const rect = el.getBoundingClientRect();
-      const mx = ((e.clientX - rect.left) / rect.width) * W;
-      const my = ((e.clientY - rect.top) / rect.height) * H;
+      const mx = ((clientX - rect.left) / rect.width) * W;
+      const my = ((clientY - rect.top) / rect.height) * H;
       let best: CapePoint | null = null;
-      let bestDist = 28; // px tolerance
+      let bestDist = 36; // slightly larger tolerance for touch
       for (const p of points) {
-        const dx = p.x - mx;
-        const dy = p.y - my;
-        const d = Math.sqrt(dx * dx + dy * dy);
+        const d = Math.hypot(p.x - mx, p.y - my);
         if (d < bestDist) { bestDist = d; best = p; }
       }
-      setHover(best);
-    }
-    function onLeave() { setHover(null); }
-    el.addEventListener("mousemove", onMove);
+      return best;
+    };
+    const onMouseMove = (e: MouseEvent) => setHover(findNearest(e.clientX, e.clientY));
+    const onLeave = () => setHover(null);
+    const onTouch = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      setHover(findNearest(t.clientX, t.clientY));
+    };
+    el.addEventListener("mousemove", onMouseMove);
     el.addEventListener("mouseleave", onLeave);
+    el.addEventListener("touchstart", onTouch, { passive: true });
+    el.addEventListener("touchmove", onTouch, { passive: true });
+    el.addEventListener("touchend", onLeave);
     return () => {
-      el.removeEventListener("mousemove", onMove);
+      el.removeEventListener("mousemove", onMouseMove);
       el.removeEventListener("mouseleave", onLeave);
+      el.removeEventListener("touchstart", onTouch);
+      el.removeEventListener("touchmove", onTouch);
+      el.removeEventListener("touchend", onLeave);
     };
   }, [points]);
 
   return (
     <div className="relative w-full">
-      {/* Mobile horizontal-scroll wrapper with snap */}
-      <div className="w-full overflow-x-auto snap-x snap-mandatory scrollbar-thin -mx-4 sm:mx-0 px-4 sm:px-0">
-        <div className="snap-center min-w-[760px] sm:min-w-0">
+      {/* On mobile we let the spiral fill the parent (which has its own
+          padding) and don't enable horizontal scroll — the SVG scales down
+          via its viewBox and stays readable. */}
+      <div className="w-full">
+        <div className="w-full">
           <svg
             ref={ref}
             viewBox={`0 0 ${W} ${H}`}
@@ -175,9 +188,12 @@ export default function CapeSpiral({ history }: Props) {
               );
             })}
 
-            {/* Current point — pulse */}
+            {/* Current point — pulse. Label flips to the left of the dot
+                when the dot is in the right half of the viewBox so it
+                doesn't run off-screen. */}
             {points.length > 0 && (() => {
               const last = points[points.length - 1];
+              const flip = last.x > W * 0.65;
               return (
                 <g className="spiral-current">
                   <circle cx={last.x} cy={last.y} r={10}
@@ -187,7 +203,9 @@ export default function CapeSpiral({ history }: Props) {
                           fill="rgb(var(--accent))"
                           stroke="rgb(var(--bg))"
                           strokeWidth="2" />
-                  <text x={last.x + 12} y={last.y + 3}
+                  <text x={flip ? last.x - 12 : last.x + 12}
+                        y={last.y + 3}
+                        textAnchor={flip ? "end" : "start"}
                         fontFamily="var(--font-geist-sans), system-ui, sans-serif"
                         fontSize="11.5"
                         fill="rgb(var(--fg))"

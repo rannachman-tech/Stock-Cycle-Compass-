@@ -61,11 +61,20 @@ html, body {
 
 body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
-  /* Subtle background vignette — adds depth without being noticeable */
+  position: relative;
+}
+
+/* Subtle background vignette painted via a fixed pseudo-element — avoids
+   the iOS Safari jank caused by background-attachment: fixed. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background-image:
     radial-gradient(ellipse 90% 60% at 50% 0%, rgb(var(--accent) / 0.025), transparent 70%),
     radial-gradient(ellipse 70% 50% at 50% 100%, rgb(var(--bg-soft) / 0.5), transparent 60%);
-  background-attachment: fixed;
 }
 
 ::selection {
