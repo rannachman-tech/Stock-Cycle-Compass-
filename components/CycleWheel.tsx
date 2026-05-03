@@ -71,8 +71,7 @@ export default function CycleWheel({ percentile, degrees, zone, tag }: Props) {
     return arr;
   }, []);
 
-  // Pre-compute hand path
-  const [hx, hy] = pointAt(CX, CY, R_HAND, 0);
+  // Hand path: drawn from the centre origin (0,0) upward.
   const handPathD = `M 0 0 L 0 -${R_HAND} L 6 -${R_HAND - 14} L 0 -${R_HAND - 4} L -6 -${R_HAND - 14} Z`;
 
   // Convert composite percentile to centre digit
@@ -228,27 +227,35 @@ export default function CycleWheel({ percentile, degrees, zone, tag }: Props) {
                 stroke="rgb(var(--border) / 0.4)"
                 strokeWidth="0.5" />
 
-        {/* Hand — slimmer profile, refined counter-balance */}
-        <g
-          className="cycle-needle"
-          transform={`translate(${CX} ${CY}) rotate(${degrees})`}
-          style={{ ["--needle-angle" as any]: `${degrees}deg` }}
-          filter="url(#handShadow)"
-        >
-          {/* Counter-balance — thinner, with smaller weight */}
-          <line x1="0" y1="0" x2="0" y2="38"
-                stroke="rgb(var(--fg-muted) / 0.8)"
-                strokeWidth="1.6"
-                strokeLinecap="round" />
-          <circle cx="0" cy="42" r="3.5"
-                  fill="rgb(var(--surface-elev))"
-                  stroke="rgb(var(--border-strong) / 0.7)"
-                  strokeWidth="0.6" />
-          {/* Main pointer — finer, with refined fill */}
-          <path d={handPathD} fill="url(#handGrad)" stroke="rgb(var(--accent) / 0.8)" strokeWidth="0.4" strokeLinejoin="round" />
-          {/* Hub cap — smaller, jewel-like */}
-          <circle cx="0" cy="0" r="4.5" fill="rgb(var(--accent))" />
-          <circle cx="0" cy="0" r="1.5" fill="rgb(var(--accent-fg) / 0.85)" />
+        {/* Hand — split translate (outer) from rotate (inner). The CSS
+            keyframe animation on .cycle-needle sets `transform: rotate(...)`,
+            which would override an SVG attribute transform on the same
+            element and break positioning. We isolate translate on the outer
+            wrapper so the inner rotation animates safely. */}
+        <g transform={`translate(${CX} ${CY})`}>
+          <g
+            className="cycle-needle"
+            style={{
+              ["--needle-angle" as any]: `${degrees}deg`,
+              transition: "--needle-angle 600ms ease-out, transform 600ms ease-out",
+            }}
+            filter="url(#handShadow)"
+          >
+            {/* Counter-balance — thinner, with smaller weight */}
+            <line x1="0" y1="0" x2="0" y2="38"
+                  stroke="rgb(var(--fg-muted) / 0.8)"
+                  strokeWidth="1.6"
+                  strokeLinecap="round" />
+            <circle cx="0" cy="42" r="3.5"
+                    fill="rgb(var(--surface-elev))"
+                    stroke="rgb(var(--border-strong) / 0.7)"
+                    strokeWidth="0.6" />
+            {/* Main pointer — finer, with refined fill */}
+            <path d={handPathD} fill="url(#handGrad)" stroke="rgb(var(--accent) / 0.8)" strokeWidth="0.4" strokeLinejoin="round" />
+            {/* Hub cap — smaller, jewel-like */}
+            <circle cx="0" cy="0" r="4.5" fill="rgb(var(--accent))" />
+            <circle cx="0" cy="0" r="1.5" fill="rgb(var(--accent-fg) / 0.85)" />
+          </g>
         </g>
 
         {/* Center text — the percentile.

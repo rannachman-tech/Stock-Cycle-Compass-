@@ -34,9 +34,10 @@ export default function RegionView({ data, pro, onConnectClick }: Props) {
         <LiveSourcesRow generatedAt={snap.generatedAt} />
       </div>
 
-      {/* 55/45 hero */}
+      {/* 55/45 hero — left column reserves vertical space for the Pro panel
+          so toggling Pro/Plain doesn't ripple-resize the right column. */}
       <section className="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-[55fr_45fr] gap-4 lg:gap-6 items-stretch">
-        <div className="rounded-xl border border-border/80 bg-surface p-5 sm:p-6 flex flex-col items-center">
+        <div className="rounded-xl border border-border/80 bg-surface p-5 sm:p-6 flex flex-col items-center lg:min-h-[640px]">
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-fg-subtle/80">
             {snap.regionLabel}
           </div>

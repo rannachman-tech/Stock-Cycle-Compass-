@@ -2,19 +2,13 @@
 
 import type { Zone } from "@/lib/types";
 import { ZONE_LABEL } from "@/lib/types";
+import { zoneColour, zoneColourAlpha } from "@/lib/zone-colours";
 
 interface Props {
   zone: Zone;
 }
 
 const STEPS: Zone[] = ["clear", "watch", "warning", "storm"];
-
-const COLOR: Record<Zone, string> = {
-  clear:   "rgb(var(--zone-clear))",
-  watch:   "rgb(var(--zone-watch))",
-  warning: "rgb(var(--zone-warning))",
-  storm:   "rgb(var(--zone-storm))",
-};
 
 const LABEL_LONG: Record<Zone, string> = {
   clear:   "Early — recovery",
@@ -27,7 +21,9 @@ export default function PositionLadder({ zone }: Props) {
   const activeIdx = STEPS.indexOf(zone);
   // Marker position is centred over the active segment (12.5%, 37.5%, 62.5%, 87.5%).
   const markerLeft = `${activeIdx * 25 + 12.5}%`;
-  const activeColor = COLOR[zone];
+  const activeColour = zoneColour(zone);
+  const activeColourSoft = zoneColourAlpha(zone, 0.2);
+  const activeColourMid = zoneColourAlpha(zone, 0.3);
 
   return (
     <div className="mt-5 w-full max-w-[420px] mx-auto">
@@ -37,23 +33,23 @@ export default function PositionLadder({ zone }: Props) {
           className="absolute inset-0 opacity-60"
           style={{
             background: `linear-gradient(to right,
-              ${COLOR.clear} 0%,
-              ${COLOR.clear} 22%,
-              ${COLOR.watch} 33%,
-              ${COLOR.watch} 47%,
-              ${COLOR.warning} 58%,
-              ${COLOR.warning} 72%,
-              ${COLOR.storm} 83%,
-              ${COLOR.storm} 100%)`,
+              ${zoneColour("clear")} 0%,
+              ${zoneColour("clear")} 22%,
+              ${zoneColour("watch")} 33%,
+              ${zoneColour("watch")} 47%,
+              ${zoneColour("warning")} 58%,
+              ${zoneColour("warning")} 72%,
+              ${zoneColour("storm")} 83%,
+              ${zoneColour("storm")} 100%)`,
           }}
         />
         {/* Sliding marker — sits on the active segment, slightly raised */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-[14px] h-[14px] rounded-full ring-2 ring-bg shadow-sm transition-all duration-500"
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-[14px] h-[14px] rounded-full ring-2 ring-bg transition-all duration-500"
           style={{
             left: markerLeft,
-            background: activeColor,
-            boxShadow: `0 0 0 1px ${activeColor}30, 0 1px 4px ${activeColor}40`,
+            background: activeColour,
+            boxShadow: `0 0 0 1px ${activeColourSoft}, 0 1px 4px ${activeColourMid}`,
           }}
         />
       </div>
@@ -77,7 +73,7 @@ export default function PositionLadder({ zone }: Props) {
         })}
       </div>
 
-      {/* Caption — refined, lighter */}
+      {/* Caption */}
       <div className="mt-3 text-center text-[12px] text-fg-muted leading-snug">
         <span className="font-medium text-fg">{LABEL_LONG[zone]}</span>
         <span className="mx-1.5 text-fg-subtle/60">·</span>

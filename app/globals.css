@@ -107,16 +107,25 @@ body::before {
   }
 }
 
-/* Cycle wheel breathing animation */
+/* Cycle wheel needle — register --needle-angle so it animates between values. */
+@property --needle-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
 @keyframes wheel-needle-drift {
-  0%, 100% { transform: rotate(var(--needle-angle, 0deg)); }
-  50% { transform: rotate(calc(var(--needle-angle, 0deg) + 0.6deg)); }
+  0%, 100% { rotate: var(--needle-angle, 0deg); }
+  50% { rotate: calc(var(--needle-angle, 0deg) + 0.6deg); }
 }
 
 .cycle-needle {
+  /* `rotate` is independent of `transform` — outer <g> can still translate
+     us to the wheel centre without being clobbered by this animation. */
   animation: wheel-needle-drift 7s ease-in-out infinite;
-  transform-origin: center;
-  transform-box: fill-box;
+  transform-origin: 0 0;
+  /* Smooth transition when the needle angle changes (e.g. region switch). */
+  transition: --needle-angle 600ms ease-out;
 }
 
 /* Spiral shimmer */

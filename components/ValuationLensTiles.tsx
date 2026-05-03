@@ -81,12 +81,19 @@ const EXPLAINERS: Record<IndicatorKey, Explainer> = {
   },
 };
 
-function pctColor(p: number, higherIsExpensive: boolean) {
+// Returns both the full-opacity colour and a CSS variable name we can
+// alpha-modulate properly. String concatenation like `"rgb(...)"+ "30"`
+// produces invalid CSS, so we keep the var name accessible separately.
+function pctColor(p: number, higherIsExpensive: boolean): { full: string; alpha: (a: number) => string } {
   const adj = higherIsExpensive ? p : 100 - p;
-  if (adj >= 80) return "rgb(var(--zone-warning))";
-  if (adj >= 60) return "rgb(var(--zone-watch))";
-  if (adj >= 30) return "rgb(var(--zone-clear))";
-  return "rgb(var(--zone-clear))";
+  const v =
+    adj >= 80 ? "--zone-warning" :
+    adj >= 60 ? "--zone-watch" :
+                "--zone-clear";
+  return {
+    full: `rgb(var(${v}))`,
+    alpha: (a: number) => `rgb(var(${v}) / ${a})`,
+  };
 }
 
 function fmtNum(n: number, unit: string) {
@@ -160,16 +167,29 @@ function Tile({
   }, [touchOpen]);
 
   const open = hover || touchOpen;
-  const colour = pctColor(ind.percentile, ind.higherIsExpensive);
+  const c = pctColor(ind.percentile, ind.higherIsExpensive);
   const dotX = `${Math.max(2, Math.min(98, ind.percentile))}%`;
 
   return (
     <div
       ref={tileRef}
-      className="relative rounded-lg border border-border/70 bg-surface p-3 hover:border-border-strong/80 transition-colors cursor-help"
+      className="relative rounded-lg border border-border/70 bg-surface p-3 hover:border-border-strong/80 transition-colors cursor-help focus-within:ring-2 focus-within:ring-accent/40 text-left"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onClick={() => setTouchOpen((v) => !v)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setTouchOpen((v) => !v);
+        } else if (e.key === "Escape") {
+          setTouchOpen(false);
+          setHover(false);
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`${ind.label}: ${fmtNum(ind.value, ind.unit)} (${ind.percentile}th percentile). Press to see details.`}
+      aria-expanded={open}
     >
       <div className="flex items-baseline justify-between gap-2">
         <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-fg-subtle/80 truncate">
@@ -197,15 +217,15 @@ function Tile({
           className="absolute inset-y-0 left-0"
           style={{
             width: `${ind.percentile}%`,
-            background: `linear-gradient(90deg, ${colour}10, ${colour}90)`,
+            background: `linear-gradient(90deg, ${c.alpha(0.15)}, ${c.alpha(0.85)})`,
           }}
         />
         <div
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full ring-[1.5px] ring-surface"
           style={{
             left: dotX,
-            background: colour,
-            boxShadow: `0 0 0 1px ${colour}40`,
+            background: c.full,
+            boxShadow: `0 0 0 1px ${c.alpha(0.25)}`,
           }}
         />
       </div>

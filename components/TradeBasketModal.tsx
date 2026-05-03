@@ -165,28 +165,32 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
             <p className="text-[13px] text-fg-muted leading-relaxed">{basket.thesis}</p>
 
             <div>
-              <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-fg-subtle">Total amount</div>
-              <div className="mt-1.5 flex items-stretch gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  value={amount}
-                  onChange={(e) => setAmount(Math.max(1, Number(e.target.value || 0)))}
-                  className="flex-1 rounded-md border border-border bg-bg px-3 py-2 text-[14px] text-fg focus:outline-none focus:border-accent tabular-nums"
-                />
-                <div className="inline-flex rounded-md border border-border overflow-hidden">
-                  {QUICK_AMOUNTS.map((q) => (
-                    <button
-                      key={q}
-                      onClick={() => setAmount(q)}
-                      className={`px-2.5 text-[11.5px] font-mono ${
-                        amount === q ? "bg-accent text-accent-fg" : "text-fg-muted hover:bg-bg-soft"
-                      }`}
-                    >
-                      ${q}
-                    </button>
-                  ))}
-                </div>
+              <label htmlFor="basket-amount" className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-fg-subtle">
+                Total amount
+              </label>
+              <input
+                id="basket-amount"
+                type="number"
+                inputMode="decimal"
+                min={1}
+                value={amount}
+                onChange={(e) => setAmount(Math.max(1, Number(e.target.value || 0)))}
+                className="mt-1.5 block w-full rounded-md border border-border bg-bg px-3 py-2 text-[14px] text-fg focus:outline-none focus:border-accent tabular-nums"
+              />
+              <div className="mt-2 grid grid-cols-4 gap-1.5">
+                {QUICK_AMOUNTS.map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => setAmount(q)}
+                    className={`rounded-md border text-[11.5px] font-mono py-1.5 transition-colors ${
+                      amount === q
+                        ? "bg-accent text-accent-fg border-accent"
+                        : "border-border text-fg-muted hover:text-fg hover:border-border-strong/80"
+                    }`}
+                  >
+                    ${q}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -252,7 +256,7 @@ export default function TradeBasketModal({ open, basket, onClose }: Props) {
         )}
 
         {step === "executing" && (
-          <div className="p-8 flex flex-col items-center gap-3">
+          <div className="min-h-[280px] p-8 flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-6 h-6 text-accent animate-spin" />
             <div className="text-[13px] text-fg-muted">
               Submitting orders…

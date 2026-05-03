@@ -59,7 +59,7 @@ export default function ProDetails({ snap, region }: Props) {
   const mostExpensive = signedDeviation.slice(0, 3);
 
   return (
-    <div className="mt-4 w-full max-w-[440px] mx-auto rounded-md border border-accent/40 bg-accent-soft/40 p-3">
+    <div className="mt-4 w-full max-w-[440px] mx-auto rounded-lg border border-accent/30 bg-accent/[0.04] dark:bg-accent/[0.08] p-3.5">
       <div className="flex items-baseline justify-between gap-2">
         <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">
           Pro · raw view
