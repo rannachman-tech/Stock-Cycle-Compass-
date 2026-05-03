@@ -23,13 +23,13 @@ function relativeUtc(iso: string): string {
 
 export default function LiveSourcesRow({ generatedAt }: Props) {
   return (
-    <div className="flex items-center gap-2 text-fg-subtle">
-      <span className="relative flex h-2 w-2">
-        <span className="absolute inset-0 rounded-full bg-zone-clear opacity-50 animate-ping" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-zone-clear" />
+    <div className="flex items-center gap-2 text-fg-subtle/85">
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="absolute inset-0 rounded-full bg-zone-clear opacity-40 animate-ping" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-zone-clear" />
       </span>
-      <Activity className="w-3.5 h-3.5" />
-      <span className="font-mono text-[10.5px] uppercase tracking-[0.14em]">
+      <Activity className="w-3 h-3" />
+      <span className="font-mono text-[10px] uppercase tracking-[0.18em]">
         Live · refreshed {relativeUtc(generatedAt)}
       </span>
     </div>

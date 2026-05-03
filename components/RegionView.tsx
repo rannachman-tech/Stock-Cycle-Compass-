@@ -36,8 +36,8 @@ export default function RegionView({ data, pro, onConnectClick }: Props) {
 
       {/* 55/45 hero */}
       <section className="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-[55fr_45fr] gap-4 lg:gap-6 items-stretch">
-        <div className="rounded-lg border border-border bg-surface p-4 sm:p-5 flex flex-col items-center">
-          <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
+        <div className="rounded-xl border border-border/80 bg-surface p-5 sm:p-6 flex flex-col items-center">
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-fg-subtle/80">
             {snap.regionLabel}
           </div>
           <div className="mt-2 sm:mt-3 w-full max-w-[440px]">
@@ -65,17 +65,17 @@ export default function RegionView({ data, pro, onConnectClick }: Props) {
       <ValuationLensTiles indicators={snap.indicators} pro={pro} />
 
       {/* CAPE spiral */}
-      <section className="mt-6 sm:mt-8 rounded-lg border border-border bg-surface p-4 sm:p-5">
+      <section className="mt-6 sm:mt-8 rounded-xl border border-border/80 bg-surface p-5 sm:p-6">
         <div className="flex items-baseline justify-between flex-wrap gap-2">
           <div>
-            <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-fg-subtle/80">
               History — CAPE since 1900
             </h2>
-            <p className="mt-1 text-[12.5px] text-fg-muted">
+            <p className="mt-1.5 text-[12.5px] text-fg-muted">
               Each loop is roughly one full cycle. Hover to inspect a year.
             </p>
           </div>
-          <p className="font-mono text-[10.5px] text-fg-subtle uppercase tracking-[0.14em]">
+          <p className="font-mono text-[10px] text-fg-subtle/70 uppercase tracking-[0.18em]">
             Source: Shiller / Yale
           </p>
         </div>

@@ -106,13 +106,13 @@ export default function ValuationLensTiles({ indicators, pro }: Props) {
   return (
     <section className="mt-6 sm:mt-8">
       <div className="flex items-baseline justify-between">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
+        <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-fg-subtle/80">
           Valuation lenses
         </h2>
-        <p className="text-[11px] text-fg-subtle">Hover any tile for the explanation</p>
+        <p className="text-[11px] text-fg-subtle/80">Hover any tile for the explanation</p>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-3">
+      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-2.5">
         {ordered.map((ind, i) => (
           <Tile
             key={ind.key}
@@ -166,44 +166,47 @@ function Tile({
   return (
     <div
       ref={tileRef}
-      className="relative rounded-md border border-border bg-surface p-3 hover:border-border-strong transition-colors cursor-help"
+      className="relative rounded-lg border border-border/70 bg-surface p-3 hover:border-border-strong/80 transition-colors cursor-help"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onClick={() => setTouchOpen((v) => !v)}
     >
       <div className="flex items-baseline justify-between gap-2">
-        <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle truncate">
+        <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-fg-subtle/80 truncate">
           {ind.shortLabel}
         </div>
         {ind.stale && (
-          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-zone-warning">
+          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-zone-warning">
             Stale
           </span>
         )}
       </div>
-      <div className="mt-1.5 flex items-baseline gap-1.5">
-        <div className="text-[20px] font-medium tabular-nums text-fg">
+      <div className="mt-2 flex items-baseline gap-1.5">
+        <div className="text-[20px] font-medium tabular-nums text-fg tracking-tightish">
           {fmtNum(ind.value, ind.unit)}
         </div>
-        <div className="text-[10.5px] text-fg-subtle tabular-nums">
+        <div className="text-[10.5px] text-fg-subtle/85 tabular-nums">
           {ind.percentile}
           <span className="text-[8.5px] align-top ml-0.5">th</span>
         </div>
       </div>
 
-      {/* Percentile track */}
-      <div className="relative mt-2 h-1.5 rounded-full bg-bg-soft overflow-hidden">
+      {/* Percentile track — refined: thinner, smoother gradient */}
+      <div className="relative mt-2.5 h-[5px] rounded-full bg-bg-soft overflow-hidden">
         <div
           className="absolute inset-y-0 left-0"
           style={{
             width: `${ind.percentile}%`,
-            background: `linear-gradient(90deg, color-mix(in srgb, ${colour} 25%, transparent), ${colour})`,
-            opacity: 0.55,
+            background: `linear-gradient(90deg, ${colour}10, ${colour}90)`,
           }}
         />
         <div
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full ring-2 ring-surface"
-          style={{ left: dotX, background: colour }}
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full ring-[1.5px] ring-surface"
+          style={{
+            left: dotX,
+            background: colour,
+            boxShadow: `0 0 0 1px ${colour}40`,
+          }}
         />
       </div>
 

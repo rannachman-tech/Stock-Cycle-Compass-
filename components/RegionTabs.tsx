@@ -10,7 +10,7 @@ interface Props {
 
 export default function RegionTabs({ active, onChange }: Props) {
   return (
-    <div className="inline-flex rounded-md border border-border bg-surface p-0.5 shadow-sm">
+    <div className="inline-flex rounded-lg border border-border/70 bg-surface p-0.5 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
       {REGIONS.map((r) => {
         const isActive = r.id === active;
         return (
@@ -18,9 +18,9 @@ export default function RegionTabs({ active, onChange }: Props) {
             key={r.id}
             onClick={() => onChange(r.id)}
             className={[
-              "px-3 sm:px-3.5 py-1.5 rounded-[5px] font-mono text-[11px] uppercase tracking-[0.16em] transition-colors",
+              "px-3 sm:px-3.5 py-1.5 rounded-[6px] font-mono text-[10.5px] uppercase tracking-[0.18em] transition-all duration-150",
               isActive
-                ? "bg-accent text-accent-fg"
+                ? "bg-accent text-accent-fg shadow-[0_1px_2px_rgb(var(--accent)/0.25)]"
                 : "text-fg-muted hover:text-fg",
             ].join(" ")}
             aria-pressed={isActive}

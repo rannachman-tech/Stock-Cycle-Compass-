@@ -53,20 +53,20 @@ export default function ConnectEtoroCta({ zone, onTradeClick, onConnectClick }: 
   const isReal = session?.env === "real";
 
   return (
-    <div className="rounded-lg border border-border bg-surface-elev p-5">
-      <div className="flex items-center gap-2">
-        <Wallet className="w-3.5 h-3.5 text-accent" />
-        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">
+    <div className="rounded-xl border border-border/80 bg-surface-elev p-5">
+      <div className="flex items-center gap-1.5">
+        <Wallet className="w-3 h-3 text-accent" />
+        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">
           {c.kicker}
         </div>
       </div>
-      <div className="mt-2.5 text-[15.5px] font-medium text-fg leading-snug tracking-tightish">
+      <div className="mt-3 text-[15px] font-medium text-fg leading-snug tracking-tightish">
         {c.title}
       </div>
-      <p className="mt-2 text-[13px] text-fg-muted leading-relaxed">{c.sub}</p>
+      <p className="mt-2 text-[12.5px] text-fg-muted leading-relaxed">{c.sub}</p>
 
       {isReal && (
-        <div className="mt-3 flex items-start gap-2 rounded-md border border-zone-storm/40 bg-zone-storm/10 px-2.5 py-2">
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-zone-storm/30 bg-zone-storm/5 px-2.5 py-2">
           <AlertTriangle className="w-3.5 h-3.5 text-zone-storm shrink-0 mt-0.5" />
           <div className="text-[11.5px] leading-snug text-fg">
             <span className="font-medium text-zone-storm">Real money mode.</span>{" "}
@@ -77,12 +77,16 @@ export default function ConnectEtoroCta({ zone, onTradeClick, onConnectClick }: 
 
       <button
         onClick={connected ? onTradeClick : onConnectClick}
-        className="mt-4 inline-flex w-full items-center justify-between rounded-md bg-accent text-accent-fg px-3.5 py-2.5 text-[13px] font-medium hover:opacity-90 transition-opacity"
+        className="group mt-4 inline-flex w-full items-center justify-between rounded-lg px-4 py-2.5 text-[13px] font-medium text-accent-fg transition-all duration-200 hover:translate-y-[-1px] active:translate-y-0"
+        style={{
+          background: "linear-gradient(180deg, rgb(var(--accent)), rgb(var(--accent) / 0.92))",
+          boxShadow: "0 1px 0 rgb(255 255 255 / 0.12) inset, 0 1px 2px rgb(var(--accent) / 0.25), 0 4px 12px rgb(var(--accent) / 0.18)",
+        }}
       >
         <span>{connected ? c.cta : "Connect eToro to trade"}</span>
-        <ArrowRight className="w-4 h-4" />
+        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
       </button>
-      <p className="mt-2 text-[10.5px] text-fg-subtle leading-snug">
+      <p className="mt-2.5 text-[10.5px] text-fg-subtle/85 leading-snug">
         Funds must be available in your eToro account for orders to fill. Not financial advice.
       </p>
     </div>

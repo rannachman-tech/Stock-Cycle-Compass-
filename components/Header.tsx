@@ -30,15 +30,15 @@ export default function Header({ pro, onProToggle, onConnectClick }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-border/60 bg-bg/85 backdrop-blur-md">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="relative w-7 h-7 rounded-md bg-accent/10 flex items-center justify-center ring-1 ring-accent/30">
-            <Compass className="w-4 h-4 text-accent" />
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="relative w-7 h-7 rounded-lg bg-accent/8 flex items-center justify-center ring-1 ring-accent/25">
+            <Compass className="w-3.5 h-3.5 text-accent" />
           </div>
           <div className="leading-tight">
-            <div className="text-[14.5px] font-medium text-fg tracking-tightish">Stock Cycle Compass</div>
-            <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-fg-subtle">
+            <div className="text-[14px] font-medium text-fg tracking-tightish">Stock Cycle Compass</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-fg-subtle/80">
               eToro · Compass family
             </div>
           </div>
@@ -46,10 +46,10 @@ export default function Header({ pro, onProToggle, onConnectClick }: Props) {
 
         <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Plain / Pro toggle */}
-          <div className="hidden sm:inline-flex rounded-md border border-border bg-surface p-0.5">
+          <div className="hidden sm:inline-flex rounded-lg border border-border/70 bg-surface p-0.5">
             <button
               onClick={() => onProToggle(false)}
-              className={`px-2.5 py-1 rounded-[5px] font-mono text-[10.5px] uppercase tracking-[0.14em] transition-colors ${
+              className={`px-2.5 py-1 rounded-[6px] font-mono text-[10px] uppercase tracking-[0.18em] transition-colors ${
                 !pro ? "bg-accent text-accent-fg" : "text-fg-muted hover:text-fg"
               }`}
               aria-pressed={!pro}
@@ -58,7 +58,7 @@ export default function Header({ pro, onProToggle, onConnectClick }: Props) {
             </button>
             <button
               onClick={() => onProToggle(true)}
-              className={`px-2.5 py-1 rounded-[5px] font-mono text-[10.5px] uppercase tracking-[0.14em] transition-colors ${
+              className={`px-2.5 py-1 rounded-[6px] font-mono text-[10px] uppercase tracking-[0.18em] transition-colors ${
                 pro ? "bg-accent text-accent-fg" : "text-fg-muted hover:text-fg"
               }`}
               aria-pressed={pro}
@@ -69,7 +69,7 @@ export default function Header({ pro, onProToggle, onConnectClick }: Props) {
 
           <button
             onClick={toggleTheme}
-            className="p-1.5 rounded-md border border-border bg-surface hover:border-border-strong transition-colors"
+            className="p-1.5 rounded-lg border border-border/70 bg-surface hover:border-border-strong/80 transition-colors"
             aria-label="Toggle theme"
           >
             {theme === "dark" ? (

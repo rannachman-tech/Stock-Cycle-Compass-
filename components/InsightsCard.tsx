@@ -9,8 +9,8 @@ export default function InsightsCard({ insights, className }: Props) {
   // Don't return null when calibrating — that breaks hero balance.
   if (!insights) {
     return (
-      <section className={`rounded-lg border border-border bg-surface p-5 ${className ?? ""}`}>
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
+      <section className={`rounded-xl border border-border/80 bg-surface p-5 ${className ?? ""}`}>
+        <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-fg-subtle">
           Worth flagging
         </h2>
         <p className="mt-3 text-fg-muted leading-relaxed">
@@ -22,23 +22,23 @@ export default function InsightsCard({ insights, className }: Props) {
 
   return (
     <section
-      className={`rounded-lg border border-border bg-surface p-5 sm:p-6 ${className ?? ""}`}
+      className={`rounded-xl border border-border/80 bg-surface p-5 sm:p-6 ${className ?? ""}`}
     >
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
+        <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-fg-subtle">
           Worth flagging
         </h2>
         <time
           dateTime={insights.asOf}
-          className="font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle"
+          className="font-mono text-[10px] uppercase tracking-[0.16em] text-fg-subtle/70 tabular-nums"
         >
           {insights.asOf}
         </time>
       </div>
-      <h3 className="mt-2.5 text-[20px] sm:text-[22px] leading-snug font-medium text-fg tracking-tightish">
+      <h3 className="mt-3 text-[20px] sm:text-[22px] leading-[1.35] font-medium text-fg tracking-tightish">
         {insights.headline}
       </h3>
-      <div className="mt-3 space-y-3 text-[14.5px] leading-relaxed text-fg-muted">
+      <div className="mt-3.5 space-y-3 text-[14px] leading-[1.65] text-fg-muted">
         {insights.body.map((para, i) => (
           <p key={i}>{para}</p>
         ))}

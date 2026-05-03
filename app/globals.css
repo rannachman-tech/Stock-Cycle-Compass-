@@ -53,7 +53,7 @@
 html, body {
   background: rgb(var(--bg));
   color: rgb(var(--fg));
-  font-feature-settings: "ss01", "cv11";
+  font-feature-settings: "ss01", "cv11", "ss03", "tnum";
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -61,6 +61,11 @@ html, body {
 
 body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  /* Subtle background vignette — adds depth without being noticeable */
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgb(var(--accent) / 0.025), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgb(var(--bg-soft) / 0.5), transparent 60%);
+  background-attachment: fixed;
 }
 
 ::selection {
@@ -70,11 +75,20 @@ body {
 /* Subtle scrollbars */
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-thumb {
-  background: rgb(var(--border-strong) / 0.6);
+  background: rgb(var(--border-strong) / 0.45);
   border-radius: 6px;
-  border: 2px solid rgb(var(--bg));
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
+*::-webkit-scrollbar-thumb:hover { background-color: rgb(var(--border-strong) / 0.7); }
 *::-webkit-scrollbar-track { background: transparent; }
+
+/* Refined focus state — subtle accent ring, no chunky outline */
+:focus-visible {
+  outline: 2px solid rgb(var(--accent) / 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
