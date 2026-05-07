@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-06T12:19:30.761Z",
+  "generatedAt": "2026-05-07T12:22:38.237Z",
   "regions": {
     "us": {
       "region": "us",
@@ -112,10 +112,10 @@
           "key": "vix",
           "label": "VIX (1-yr percentile)",
           "shortLabel": "VIX",
-          "value": 18.29,
+          "value": 17.38,
           "unit": "",
-          "percentile": 55,
-          "asOf": "2026-05-04",
+          "percentile": 50,
+          "asOf": "2026-05-05",
           "source": "FRED VIXCLS",
           "sourceUrl": "https://fred.stlouisfed.org/series/VIXCLS",
           "stale": false,
@@ -127,10 +127,10 @@
           "key": "yieldCurve",
           "label": "10y - 2y spread",
           "shortLabel": "Curve",
-          "value": 0.5,
+          "value": 0.49,
           "unit": "pp",
           "percentile": 41,
-          "asOf": "2026-05-05",
+          "asOf": "2026-05-06",
           "source": "FRED T10Y2Y",
           "sourceUrl": "https://fred.stlouisfed.org/series/T10Y2Y",
           "stale": false,
