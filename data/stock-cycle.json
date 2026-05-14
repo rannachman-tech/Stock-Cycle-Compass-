@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-13T16:04:43.662Z",
+  "generatedAt": "2026-05-14T12:18:09.409Z",
   "regions": {
     "us": {
       "region": "us",
@@ -127,10 +127,10 @@
           "key": "yieldCurve",
           "label": "10y - 2y spread",
           "shortLabel": "Curve",
-          "value": 0.46,
+          "value": 0.48,
           "unit": "pp",
-          "percentile": 39,
-          "asOf": "2026-05-12",
+          "percentile": 40,
+          "asOf": "2026-05-13",
           "source": "FRED T10Y2Y",
           "sourceUrl": "https://fred.stlouisfed.org/series/T10Y2Y",
           "stale": false,
