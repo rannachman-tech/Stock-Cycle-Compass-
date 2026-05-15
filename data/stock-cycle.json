@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-14T12:18:09.409Z",
+  "generatedAt": "2026-05-15T12:26:59.047Z",
   "regions": {
     "us": {
       "region": "us",
@@ -112,10 +112,10 @@
           "key": "vix",
           "label": "VIX (1-yr percentile)",
           "shortLabel": "VIX",
-          "value": 17.99,
+          "value": 17.87,
           "unit": "",
-          "percentile": 54,
-          "asOf": "2026-05-12",
+          "percentile": 53,
+          "asOf": "2026-05-13",
           "source": "FRED VIXCLS",
           "sourceUrl": "https://fred.stlouisfed.org/series/VIXCLS",
           "stale": false,
