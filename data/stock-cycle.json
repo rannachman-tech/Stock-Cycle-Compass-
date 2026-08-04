@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-03T10:08:01.424Z",
+  "generatedAt": "2026-08-04T09:12:40.710Z",
   "regions": {
     "us": {
       "region": "us",
@@ -112,10 +112,10 @@
           "key": "vix",
           "label": "VIX (1-yr percentile)",
           "shortLabel": "VIX",
-          "value": 17.09,
+          "value": 15.99,
           "unit": "",
-          "percentile": 49,
-          "asOf": "2026-07-30",
+          "percentile": 41,
+          "asOf": "2026-07-31",
           "source": "FRED VIXCLS",
           "sourceUrl": "https://fred.stlouisfed.org/series/VIXCLS",
           "stale": false,
@@ -127,10 +127,10 @@
           "key": "yieldCurve",
           "label": "10y - 2y spread",
           "shortLabel": "Curve",
-          "value": 0.47,
+          "value": 0.45,
           "unit": "pp",
-          "percentile": 40,
-          "asOf": "2026-07-31",
+          "percentile": 39,
+          "asOf": "2026-08-03",
           "source": "FRED T10Y2Y",
           "sourceUrl": "https://fred.stlouisfed.org/series/T10Y2Y",
           "stale": false,
@@ -145,13 +145,13 @@
           "value": 3.63,
           "unit": "%",
           "percentile": 42,
-          "asOf": "2026-06-01",
+          "asOf": "2026-07-01",
           "source": "FRED FEDFUNDS",
           "sourceUrl": "https://fred.stlouisfed.org/series/FEDFUNDS",
           "stale": false,
           "higherIsExpensive": true,
           "longRunMean": 4.6,
-          "longRunMedian": 4.27
+          "longRunMedian": 4.26
         }
       ],
       "generatedAt": "2026-05-02T06:15:00Z"
